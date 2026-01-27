@@ -1,0 +1,84 @@
+/* 玻璃态与组件样式 */
+.glass {
+  background: var(--bg-glass);
+  border: 1px solid var(--border-glass);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: var(--shadow-soft);
+}
+
+/* 时间小组件细节 */
+.avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #8ec5fc 0%, #e0c3fc 100%);
+}
+
+.time-text {
+  font-size: 24px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+/* 应用图标与文字 */
+.app-grid .app {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.app-icon {
+  width: 62px;
+  height: 62px;
+  border-radius: var(--radius-icon);
+  background: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%);
+  display: grid;
+  place-items: center;
+  font-size: 26px;
+  color: #475569;
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  box-shadow: 0 10px 18px rgba(15, 23, 42, 0.12);
+}
+
+.app-name {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+/* Dock 内的应用 */
+.dock .app {
+  flex: 1;
+  max-width: 88px;
+}
+
+.dock .app-icon {
+  width: 58px;
+  height: 58px;
+  border-radius: 20px;
+}
+
+/* 占位图标样式（彩色块） */
+.placeholder {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #6dd5ed 0%, #2193b0 100%);
+}
+
+/* 小屏适配 */
+@media (max-width: 420px) {
+  :root {
+    --device-width: 320px;
+    --device-height: 680px;
+  }
+
+  .time-text {
+    font-size: 22px;
+  }
+
+  .app-grid {
+    gap: 12px 10px;
+  }
+}

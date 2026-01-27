@@ -1,0 +1,59 @@
+/* 布局与设备外观 */
+.device {
+  position: relative;
+  width: var(--device-width);
+  height: var(--device-height);
+  border-radius: var(--radius-large);
+  background: linear-gradient(180deg, #f7f8fb 0%, #e7ecf5 100%);
+  box-shadow: var(--shadow-soft);
+  padding: 18px 16px 20px;
+  overflow: hidden;
+}
+
+/* 刘海占位（纯装饰） */
+.notch {
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 120px;
+  height: 28px;
+  background: #0f172a;
+  border-radius: 18px;
+}
+
+/* 时间小组件 */
+.time-widget {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border-radius: var(--radius-medium);
+  margin: 28px auto 16px;
+  width: calc(100% - 40px);
+}
+
+/* 应用网格 */
+.app-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px 12px;
+  padding: 0 8px;
+  margin-top: 6px;
+  margin-bottom: 28px;
+}
+
+/* Dock 栏 */
+.dock {
+  position: absolute;
+  bottom: 14px;
+  left: 12px;
+  right: 12px;
+  height: var(--dock-height);
+  border-radius: var(--radius-large);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 10px 16px;
+}

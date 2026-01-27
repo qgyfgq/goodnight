@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>仿 iPhone 主屏幕</title>
+  <link rel="stylesheet" href="css/reset.css" />
+  <link rel="stylesheet" href="css/theme.css" />
+  <link rel="stylesheet" href="css/layout.css" />
+  <link rel="stylesheet" href="css/components.css" />
+</head>
+<body>
+  <div class="page">
+    <div class="device">
+      <div class="notch"></div>
+
+      <section class="time-widget glass">
+        <div class="avatar"></div>
+        <div class="time-text" id="timeText">--:--</div>
+      </section>
+
+      <section class="app-grid" id="appGrid"></section>
+
+      <section class="dock glass" id="dock"></section>
+    </div>
+  </div>
+
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>
