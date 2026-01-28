@@ -220,11 +220,6 @@
   align-items: center;
   justify-content: center;
   padding: 0.25em;
-  cursor: pointer;
-}
-
-.notebook-photo:hover {
-  opacity: 0.9;
 }
 
 .notebook-photo img {
@@ -235,6 +230,74 @@
   transform: rotate(-15deg);
   filter: drop-shadow(0 0.5em 1em rgba(0, 0, 0, 0.25));
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.5);
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+}
+
+.notebook-photo img:hover {
+  opacity: 0.9;
+}
+
+/* 照片菜单 */
+.photo-menu {
+  position: fixed;
+  background: rgba(0, 0, 0, 0.95);
+  border-radius: 1em;
+  padding: 1em;
+  z-index: 1000;
+  display: none;
+  flex-direction: column;
+  gap: 0.75em;
+  min-width: 15em;
+  backdrop-filter: blur(0.625em);
+  animation: slideUp 0.3s ease-out;
+}
+
+.photo-menu.show {
+  display: flex;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(1em);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.photo-menu-btn {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #fff;
+  padding: 0.75em 1em;
+  border-radius: 0.75em;
+  cursor: pointer;
+  font-size: 0.9em;
+  transition: all 0.2s ease;
+  text-align: center;
+}
+
+.photo-menu-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+.photo-menu-btn:active {
+  transform: scale(0.95);
+}
+
+.photo-menu-overlay {
+  position: fixed;
+  inset: 0;
+  display: none;
+  z-index: 999;
+}
+
+.photo-menu-overlay.show {
+  display: block;
 }
 
 /* 右页去掉背后书页效果 */
