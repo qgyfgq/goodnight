@@ -33,18 +33,37 @@ export const initPhotoWidget = () => {
     overlay.classList.remove('show');
   };
 
-  const showMenu = (e) => {
-    const rect = photoImg.getBoundingClientRect();
-    menu.style.top = Math.max(10, rect.top - menu.offsetHeight - 10) + 'px';
-    menu.style.left = Math.max(10, rect.left + (rect.width - menu.offsetWidth) / 2) + 'px';
+  const photoArea = photoImg.closest('.notebook-photo-stack') || photoImg;
+
+  const showMenu = () => {
+    const rect = (photoArea || photoImg).getBoundingClientRect();
+
+    // 先测量菜单尺寸，方便居中定位
+    menu.style.display = 'flex';
+    menu.style.visibility = 'hidden';
+    const menuWidth = menu.offsetWidth;
+    menu.style.display = '';
+    menu.style.visibility = '';
+
+    const margin = 12;
+    const viewportWidth = window.innerWidth;
+    const top = rect.bottom + margin;
+    const left = Math.min(
+      viewportWidth - menuWidth - margin,
+      Math.max(margin, rect.left + (rect.width - menuWidth) / 2)
+    );
+
+    menu.style.top = `${top}px`;
+    menu.style.left = `${left}px`;
     menu.classList.add('show');
     overlay.classList.add('show');
   };
 
-  // 点击图片显示菜单
-  photoImg.addEventListener('click', (e) => {
+  // 点击右页区域（含图片周边）显示菜单，扩大触发范围
+  const bindTarget = photoArea || photoImg;
+  bindTarget.addEventListener('click', (e) => {
     e.stopPropagation();
-    showMenu(e);
+    showMenu();
   });
 
   // 上传本地图片
@@ -84,4 +103,3 @@ export const initPhotoWidget = () => {
   // 点击菜单外部关闭
   overlay.addEventListener('click', closeMenu);
 };
-

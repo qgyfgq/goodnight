@@ -9,7 +9,7 @@ export const renderApps = (container, apps) => {
   container.innerHTML = apps
     .map(
       (app) => `
-      <div class="app">
+      <div class="app" data-app-name="${app.name}">
         <div class="app-icon">
           <img src="${app.icon}" alt="${app.name}" loading="lazy" />
         </div>

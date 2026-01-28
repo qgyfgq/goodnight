@@ -8,12 +8,14 @@
   <link rel="stylesheet" href="css/theme.css" />
   <link rel="stylesheet" href="css/layout.css" />
   <link rel="stylesheet" href="css/components.css" />
+  <link rel="stylesheet" href="css/settings.css" />
 </head>
 <body>
   <div class="page">
     <div class="device">
       <div class="widget-container">
-        <div class="notch"></div>
+        <div class="home-view" id="homeView">
+          <div class="notch"></div>
 
         <section class="status-bar glass">
           <div class="avatar"></div>
@@ -61,6 +63,89 @@
         <section class="app-grid" id="appGrid"></section>
 
         <section class="dock glass" id="dock"></section>
+        </div>
+
+        <section class="settings-view glass" id="settingsView">
+          <header class="settings-nav">
+            <button class="settings-back" id="settingsBack" aria-label="返回">‹</button>
+            <div class="settings-title" id="settingsTitle">设置</div>
+          </header>
+
+          <div class="settings-section settings-main active" id="settingsMain">
+            <div class="settings-list">
+              <button class="settings-item settings-link" id="apiSettingsEntry" aria-label="API 设置">
+                <span class="settings-icon icon-api"></span>
+                <span class="settings-text">API 设置</span>
+              </button>
+              <div class="settings-item">
+                <span class="settings-icon icon-data"></span>
+                <span class="settings-text">数据设置</span>
+              </div>
+              <div class="settings-item">
+                <span class="settings-icon icon-bell"></span>
+                <span class="settings-text">提示音设置</span>
+              </div>
+              <div class="settings-item">
+                <span class="settings-icon icon-voice"></span>
+                <span class="settings-text">语音设置</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="settings-section api-settings" id="apiSettings">
+            <div class="settings-card">
+              <div class="field">
+                <label for="apiUrl">API 地址</label>
+                <input id="apiUrl" type="text" placeholder="https://example.com" />
+                <p class="field-hint">后缀已内置，无需再写 /v1</p>
+              </div>
+
+              <div class="field">
+                <label for="apiKey">API 密钥</label>
+                <input id="apiKey" type="password" placeholder="请输入密钥" />
+              </div>
+
+              <div class="field inline">
+                <div class="field-group">
+                  <label for="modelSelect">模型列表</label>
+                  <select id="modelSelect">
+                    <option value="">请先拉取模型</option>
+                  </select>
+                </div>
+                <button class="btn secondary" id="btnFetchModels">拉取模型列表</button>
+              </div>
+
+              <div class="field inline">
+                <div class="field-group">
+                  <label>连接测试</label>
+                  <div class="test-status" id="testStatus">未测试</div>
+                </div>
+                <button class="btn ghost" id="btnTest">测试连接</button>
+              </div>
+
+              <div class="field inline with-popup">
+                <div class="field-group">
+                  <label>配置列表</label>
+                  <div id="profileList" class="profile-list">
+                    <div class="profile-empty">暂无配置</div>
+                  </div>
+                </div>
+                <button class="btn primary" id="btnSave">保存配置</button>
+
+                <div class="save-popup" id="savePopup" aria-hidden="true">
+                  <div class="save-popup-card">
+                    <label for="saveNameInput">配置名称</label>
+                    <input id="saveNameInput" type="text" placeholder="例如：公司接口" />
+                    <div class="save-actions">
+                      <button class="btn ghost" id="btnSaveCancel" type="button">取消</button>
+                      <button class="btn primary" id="btnSaveConfirm" type="button">保存</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
       </div>
     </div>
   </div>
