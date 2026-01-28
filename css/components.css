@@ -7,6 +7,17 @@
   box-shadow: var(--shadow-soft);
 }
 
+/* 头像 */
+.avatar {
+  width: 2.375em;   /* 38px */
+  height: 2.375em;
+  border-radius: 50%;
+  background-image: url("https://img.heliar.top/file/1769536131806_211753_glasses_icon-removebg-preview__1___1___1_.png");
+  background-size: cover;
+  background-position: center;
+  flex-shrink: 0;
+}
+
 /* 时间文本 */
 .status-time {
   font-size: 1.625em;  /* 26px */
