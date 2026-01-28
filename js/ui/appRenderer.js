@@ -11,7 +11,7 @@ export const renderApps = (container, apps) => {
       (app) => `
       <div class="app">
         <div class="app-icon">
-          <span aria-hidden="true">${app.emoji}</span>
+          <img src="${app.icon}" alt="${app.name}" loading="lazy" />
         </div>
         <div class="app-name">${app.name}</div>
       </div>

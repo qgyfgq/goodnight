@@ -1,11 +1,10 @@
 import { homeApps, dockApps } from "./data/apps.js";
-import { initTimeWidget } from "./widgets/timeWidget.js";
+import { initStatusBar } from "./widgets/statusBar.js";
 import { renderApps } from "./ui/appRenderer.js";
 
-const setup = () => {
-  // 渲染时间
-  const timeEl = document.getElementById("timeText");
-  initTimeWidget(timeEl);
+const setup = async () => {
+  // 初始化状态栏（时间和电池）
+  await initStatusBar();
 
   // 渲染中部应用
   const appGrid = document.getElementById("appGrid");

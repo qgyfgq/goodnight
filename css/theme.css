@@ -1,14 +1,14 @@
 :root {
-  --device-width: 360px;
-  --device-height: 760px;
-  --radius-large: 32px;
-  --radius-medium: 20px;
-  --radius-small: 14px;
-  --radius-icon: 24px;
+  --device-width: 22.5em;   /* 360px */
+  --device-height: 42.5em;  /* 680px */
+  --radius-large: 2em;      /* 32px */
+  --radius-medium: 1.25em;  /* 20px */
+  --radius-small: 0.875em;  /* 14px */
+  --radius-icon: 1.5em;     /* 24px */
   --bg-glass: rgba(255, 255, 255, 0.45);
   --border-glass: rgba(255, 255, 255, 0.7);
-  --shadow-soft: 0 12px 30px rgba(15, 23, 42, 0.15);
+  --shadow-soft: 0 0.75em 1.875em rgba(15, 23, 42, 0.15); /* 12px 30px */
   --text-primary: #0f172a;
   --text-secondary: #334155;
-  --dock-height: 90px;
+  --dock-height: 5.625em;   /* 90px */
 }

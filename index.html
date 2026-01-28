@@ -12,16 +12,28 @@
 <body>
   <div class="page">
     <div class="device">
-      <div class="notch"></div>
+      <div class="widget-container">
+        <div class="notch"></div>
 
-      <section class="time-widget glass">
-        <div class="avatar"></div>
-        <div class="time-text" id="timeText">--:--</div>
-      </section>
+        <section class="status-bar glass">
+          <div class="status-time" id="statusTime">--:--</div>
+          <div class="battery-widget">
+            <div class="battery-ring">
+              <svg class="battery-progress" viewBox="0 0 100 100">
+                <circle class="battery-circle" cx="50" cy="50" r="45"></circle>
+              </svg>
+              <div class="battery-content">
+                <div class="battery-percentage" id="batteryPercentage">--</div>
+                <div class="charging-icon" id="chargingIcon" style="display: none;">⚡</div>
+              </div>
+            </div>
+          </div>
+        </section>
 
-      <section class="app-grid" id="appGrid"></section>
+        <section class="app-grid" id="appGrid"></section>
 
-      <section class="dock glass" id="dock"></section>
+        <section class="dock glass" id="dock"></section>
+      </div>
     </div>
   </div>
 
