@@ -39,12 +39,19 @@
 .status-bar {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
   padding: 0.75em 1.25em;  /* 12px 20px */
   border-radius: var(--radius-medium);
   width: 100%;
   margin: 1.5em 0 1.25em 0;
   min-height: 3.5em;  /* 56px */
+  position: relative;
+}
+
+.status-bar .avatar {
+  position: absolute;
+  left: 1.25em;
+  flex-shrink: 0;
 }
 
 /* 应用网格 */

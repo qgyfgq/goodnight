@@ -13,7 +13,6 @@
   font-weight: 600;
   letter-spacing: 0.03125em; /* 0.5px */
   color: var(--text-primary);
-  flex: 1;
   text-align: center;
 }
 
@@ -22,8 +21,9 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-left: auto;
-  padding-left: 1.5em;
+  position: absolute;
+  right: 1.25em;
+  flex-shrink: 0;
 }
 
 .battery-ring {
