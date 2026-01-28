@@ -111,6 +111,107 @@
   }
 }
 
+/* 手账本小组件 */
+.music-player {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75em;
+  width: 100%;
+  height: 100%;
+}
+
+.player-disc {
+  position: relative;
+  width: 3.5em;    /* 56px */
+  height: 3.5em;
+  border-radius: 50%;
+  background: radial-gradient(circle at 30% 30%, #fff5e6, #e8d7c3);
+  box-shadow: 
+    inset 0 0.25em 0.5em rgba(0, 0, 0, 0.1),
+    0 0.5em 1em rgba(0, 0, 0, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: spin 3s linear infinite;
+}
+
+.player-disc-inner {
+  width: 1.5em;
+  height: 1.5em;
+  border-radius: 50%;
+  background: radial-gradient(circle at 30% 30%, #2c2c2c, #1a1a1a);
+  box-shadow: inset 0 0.125em 0.25em rgba(255, 255, 255, 0.1);
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.player-controls {
+  display: flex;
+  gap: 0.5em;
+  justify-content: center;
+}
+
+.player-btn {
+  width: 1.75em;   /* 28px */
+  height: 1.75em;
+  border-radius: 50%;
+  border: 1px solid rgba(76, 85, 97, 0.3);
+  background: rgba(255, 255, 255, 0.5);
+  color: #4c5561;
+  font-size: 0.625em; /* 10px */
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.player-btn:hover {
+  background: rgba(255, 255, 255, 0.8);
+  border-color: rgba(76, 85, 97, 0.5);
+}
+
+.player-btn.active {
+  background: #4c5561;
+  color: #fff;
+  border-color: #4c5561;
+}
+
+.player-title {
+  font-size: 0.625em;  /* 10px */
+  color: #8b92a0;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+}
+
+/* 手账本右页照片 */
+.notebook-photo {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  border-radius: 0.375em;
+  overflow: hidden;
+}
+
+.notebook-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform: rotate(-15deg) scale(1.1);
+  transform-origin: center;
+  filter: drop-shadow(0 0.375em 0.75em rgba(0, 0, 0, 0.2));
+}
+
 /* 应用图标与文字 */
 .app-grid .app {
   display: flex;
