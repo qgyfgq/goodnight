@@ -301,7 +301,8 @@
   display: block;
 }
 
-/* 右页去掉背后书页效果 */
+/* 去掉两页背后翻页效果 */
+.notebook-left::after,
 .notebook-right::after {
   display: none !important;
 }
