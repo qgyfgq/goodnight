@@ -127,22 +127,41 @@
   width: 3.5em;    /* 56px */
   height: 3.5em;
   border-radius: 50%;
-  background: radial-gradient(circle at 30% 30%, #fff5e6, #e8d7c3);
+  background: radial-gradient(circle at 35% 35%, #fff5e6, #e8d7c3, #d4b896);
   box-shadow: 
-    inset 0 0.25em 0.5em rgba(0, 0, 0, 0.1),
-    0 0.5em 1em rgba(0, 0, 0, 0.15);
+    inset 0 0.375em 0.75em rgba(0, 0, 0, 0.15),
+    inset -0.375em 0 0.75em rgba(0, 0, 0, 0.08),
+    0 0.625em 1.25em rgba(0, 0, 0, 0.2);
   display: flex;
   align-items: center;
   justify-content: center;
   animation: spin 3s linear infinite;
+  overflow: hidden;
+}
+
+.player-disc::before {
+  content: '';
+  position: absolute;
+  inset: 0.5em;
+  border-radius: 50%;
+  background: repeating-conic-gradient(
+    from 0deg,
+    rgba(0, 0, 0, 0.02) 0deg 6deg,
+    transparent 6deg 12deg
+  );
+  pointer-events: none;
 }
 
 .player-disc-inner {
   width: 1.5em;
   height: 1.5em;
   border-radius: 50%;
-  background: radial-gradient(circle at 30% 30%, #2c2c2c, #1a1a1a);
-  box-shadow: inset 0 0.125em 0.25em rgba(255, 255, 255, 0.1);
+  background: radial-gradient(circle at 35% 35%, #3a3a3a, #1a1a1a);
+  box-shadow: 
+    inset 0 0.25em 0.5em rgba(255, 255, 255, 0.15),
+    0 0.25em 0.5em rgba(0, 0, 0, 0.3);
+  position: relative;
+  z-index: 1;
 }
 
 @keyframes spin {
@@ -199,17 +218,20 @@
   position: relative;
   width: 100%;
   height: 100%;
-  border-radius: 0.375em;
-  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5em;
 }
 
 .notebook-photo img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
-  transform: rotate(-15deg) scale(1.1);
-  transform-origin: center;
-  filter: drop-shadow(0 0.375em 0.75em rgba(0, 0, 0, 0.2));
+  object-fit: contain;
+  border-radius: 0.25em;
+  transform: rotate(-15deg);
+  filter: drop-shadow(0 0.5em 1em rgba(0, 0, 0, 0.25));
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.5);
 }
 
 /* 应用图标与文字 */
