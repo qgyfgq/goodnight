@@ -1,0 +1,48 @@
+/* 信聊应用：面板内容 */
+.xinliao-panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6em;
+  height: 3em;
+  padding: 0 0.1em;
+}
+
+.xinliao-panel-spacer {
+  flex: 1;
+}
+
+.xinliao-panel-title {
+  font-weight: 600;
+  font-size: 0.95em;
+  color: var(--text-primary);
+}
+
+.xinliao-note {
+  font-size: 0.78em;
+  color: var(--text-secondary);
+  margin-top: 0.4em;
+}
+
+.xinliao-note.warning {
+  color: #b45309;
+}
+
+.xinliao-note.error {
+  color: #b91c1c;
+}
+
+.xinliao-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75em;
+}
+
+.xinliao-list .xinliao-card {
+  transition: transform 0.15s ease, box-shadow 0.2s ease;
+}
+
+.xinliao-list .xinliao-card:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 0.9em 1.7em rgba(15, 23, 42, 0.14);
+}
