@@ -32,7 +32,46 @@
 }
 
 .settings-section.transition-in {
-  animation: fadeUp 240ms ease;
+  animation: fadeIn 0.25s ease;
+}
+
+.sound-settings {
+  flex-direction: column;
+  gap: 1.2rem;
+  overflow: hidden;
+}
+
+.sound-settings-main,
+.sound-settings-detail {
+  display: none;
+  flex-direction: column;
+  gap: 1em;
+}
+
+.sound-settings-main.active,
+.sound-settings-detail.active {
+  display: flex;
+}
+
+.sound-settings-detail {
+  overflow-y: auto;
+  padding-bottom: 0.5rem;
+}
+
+.settings-subtitle {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: #1f1f1f;
+}
+
+.range-value {
+  font-size: 0.85rem;
+  color: rgba(45, 45, 45, 0.7);
+}
+
+.file-input {
+  padding: 0.5rem 0.7rem;
 }
 
 @keyframes fadeUp {
@@ -260,90 +299,51 @@
   margin-top: 1.9em;
 }
 
-/* 配置列表：与按钮等高的下拉卡片（纵向滚动） */
+/* 配置列表：圆角长条容器与卡片 */
 .profile-list {
-  position: relative;
-  min-height: 3em;
-  border-radius: 0.9em;
-  background: rgba(255, 255, 255, 0.9);
-  border: 1px solid rgba(255, 255, 255, 0.7);
-  box-shadow: 0 0.8em 1.4em rgba(15, 23, 42, 0.12);
-  padding: 0.45em 0.8em;
   display: flex;
-  align-items: center;
+  flex-direction: column;
+  gap: 0.4em;
+  min-height: 2.6em;
+  max-height: 2.6em;
+  padding: 0.3em 0.5em;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.82);
+  border: 1px solid rgba(255, 255, 255, 0.65);
+  box-shadow: 0 0.9em 1.6em rgba(15, 23, 42, 0.12);
+  overflow-y: hidden;
+  transition: max-height 0.2s ease, border-radius 0.2s ease;
+  scrollbar-width: thin;
   cursor: pointer;
-  user-select: none;
 }
 
-.profile-list.disabled {
-  cursor: not-allowed;
-  opacity: 0.65;
-}
-
-.profile-current {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
-  gap: 0.5em;
-}
-
-.profile-current .text {
-  display: flex;
-  flex-direction: column;
-  gap: 0.1em;
-}
-
-.profile-current .caret {
-  font-size: 1em;
-  color: var(--text-secondary);
-  opacity: 0.9;
-}
-
-.profile-dropdown {
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: calc(100% + 0.35em);
-  background: rgba(255, 255, 255, 0.95);
-  border-radius: 1em;
-  border: 1px solid rgba(255, 255, 255, 0.8);
-  box-shadow: 0 1.1em 2em rgba(15, 23, 42, 0.16);
-  padding: 0.35em 0.35em 0.45em;
-  display: none;
-  flex-direction: column;
-  gap: 0.35em;
-  max-height: 12em;
+.profile-list:focus-within {
+  max-height: 9.5em;
   overflow-y: auto;
-  scrollbar-width: none; /* Firefox */
-  -ms-overflow-style: none; /* IE/Edge */
-  touch-action: pan-y;
-  z-index: 15;
+  border-radius: 1em;
+  cursor: default;
 }
 
-.profile-list.open .profile-dropdown {
-  display: flex;
+.profile-list::-webkit-scrollbar {
+  width: 0.35em;
 }
 
-/* 隐藏滚动条但保留滚轮/滑动滚动能力 */
-.profile-dropdown::-webkit-scrollbar {
-  width: 0;
-  height: 0;
-  display: none;
+.profile-list::-webkit-scrollbar-thumb {
+  background: rgba(76, 85, 97, 0.25);
+  border-radius: 999px;
 }
 
 .profile-item {
   width: 100%;
-  text-align: left;
-  padding: 0.6em 0.75em;
-  border-radius: 0.85em;
+  padding: 0.5em 0.85em;
+  border-radius: 0.9em;
   border: 1px solid rgba(76, 85, 97, 0.18);
-  background: rgba(255, 255, 255, 0.96);
+  background: rgba(255, 255, 255, 0.92);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
   color: var(--text-primary);
   display: flex;
   flex-direction: column;
-  gap: 0.12em;
+  gap: 0.15em;
   transition: transform 0.12s ease, box-shadow 0.18s ease, border-color 0.18s ease;
 }
 
@@ -373,7 +373,7 @@
 .profile-empty {
   color: var(--text-secondary);
   font-size: 0.88em;
-  padding: 0.35em 0.5em;
+  padding: 0.4em 0.5em;
 }
 
 .save-popup {
@@ -435,6 +435,24 @@
 #modelSelect.is-expanded {
   max-height: 12em;
   overflow-y: auto;
+}
+
+/* 配置选择器行 */
+.profile-select-row {
+  display: flex;
+  gap: 0.5em;
+  align-items: center;
+}
+
+.profile-select {
+  flex: 1;
+  min-width: 0;
+}
+
+.profile-select-row .btn {
+  padding: 0.6em 0.8em;
+  font-size: 0.85em;
+  margin-top: 0;
 }
 
 .field label {
@@ -572,6 +590,193 @@
 
 .switch input:checked + .slider::before {
   transform: translateX(1.5em);
+}
+
+/* 数据管理设置 */
+.data-settings {
+  overflow-y: auto;
+  padding-bottom: 1rem;
+}
+
+.data-settings-main,
+.data-settings-detail {
+  display: none;
+  flex-direction: column;
+  gap: 1em;
+}
+
+.data-settings-main.active,
+.data-settings-detail.active {
+  display: flex;
+}
+
+.data-settings .settings-card {
+  background: rgba(255, 255, 255, 0.78);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  border-radius: 1.25em;
+  padding: 1.1em 1.2em;
+  box-shadow: 0 0.75em 1.5em rgba(15, 23, 42, 0.12);
+  display: flex;
+  flex-direction: column;
+  gap: 0.9em;
+}
+
+/* 存储空间图标 */
+.icon-storage {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+}
+
+.icon-storage::before {
+  width: 60%;
+  height: 25%;
+  top: 22%;
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.icon-storage::after {
+  width: 60%;
+  height: 25%;
+  bottom: 22%;
+  background: rgba(255, 255, 255, 0.7);
+}
+
+/* 备份图标 */
+.icon-backup {
+  background: linear-gradient(135deg, #11998e, #38ef7d);
+}
+
+.icon-backup::before {
+  width: 50%;
+  height: 50%;
+  top: 18%;
+  left: 25%;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 0.3em;
+}
+
+.icon-backup::after {
+  width: 30%;
+  height: 20%;
+  bottom: 22%;
+  left: 35%;
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: 0.2em;
+}
+
+/* 清理图标 */
+.icon-clean {
+  background: linear-gradient(135deg, #ff6b6b, #ee5a5a);
+}
+
+.icon-clean::before {
+  width: 45%;
+  height: 55%;
+  top: 18%;
+  left: 27%;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 0.2em 0.2em 0.4em 0.4em;
+}
+
+.icon-clean::after {
+  width: 55%;
+  height: 15%;
+  top: 18%;
+  left: 22%;
+  background: rgba(255, 255, 255, 0.85);
+  border-radius: 0.2em;
+}
+
+/* 存储进度条 */
+.storage-bar {
+  width: 100%;
+  height: 0.6em;
+  background: rgba(76, 85, 97, 0.15);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.storage-bar-fill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, #7da6ff, #5b7bff);
+  border-radius: 999px;
+  transition: width 0.3s ease, background 0.3s ease;
+}
+
+.storage-text {
+  font-size: 0.85em;
+  color: var(--text-secondary);
+  margin-top: 0.3em;
+}
+
+/* 存储详情列表 */
+.storage-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4em;
+  margin-top: 0.5em;
+}
+
+.storage-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5em 0.7em;
+  background: rgba(255, 255, 255, 0.6);
+  border-radius: 0.7em;
+  border: 1px solid rgba(76, 85, 97, 0.1);
+}
+
+.storage-item-label {
+  font-size: 0.85em;
+  color: var(--text-primary);
+}
+
+.storage-item-size {
+  font-size: 0.8em;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.storage-empty {
+  font-size: 0.85em;
+  color: var(--text-secondary);
+  text-align: center;
+  padding: 0.8em;
+}
+
+/* 危险按钮 */
+.btn.danger {
+  background: linear-gradient(135deg, #ff6b6b, #ee5a5a);
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+.btn.danger:hover {
+  box-shadow: 0 0.8em 1.4em rgba(238, 90, 90, 0.25);
+}
+
+/* 数据提示 */
+.data-hint {
+  background: rgba(125, 166, 255, 0.1);
+  border: 1px solid rgba(125, 166, 255, 0.25);
+  border-radius: 1em;
+  padding: 1em 1.2em;
+  font-size: 0.85em;
+  color: var(--text-secondary);
+}
+
+.data-hint p {
+  margin: 0 0 0.5em 0;
+}
+
+.data-hint ul {
+  margin: 0;
+  padding-left: 1.2em;
+}
+
+.data-hint li {
+  margin-bottom: 0.3em;
 }
 
 /* 小屏微调 */

@@ -1,6 +1,8 @@
 import { SYSTEM_PROMPTS, APP_SYSTEM_PROMPT } from "./prompts.js";
+import { loadWorldbookData } from "../worldbook/worldbookData.js";
 
 const STORAGE_KEY = "apiProfiles";
+const ACTIVE_PROFILE_KEY = "apiActiveProfile";
 const DEFAULT_TIMEOUT = 30000;
 
 const readProfiles = () => {
@@ -15,7 +17,17 @@ const readProfiles = () => {
 
 export const getActiveProfile = () => {
   const list = readProfiles();
-  return list.length ? list[0] : null;
+  if (!list.length) return null;
+  
+  // 读取保存的活动配置ID
+  const savedActiveId = localStorage.getItem(ACTIVE_PROFILE_KEY);
+  if (savedActiveId) {
+    const activeProfile = list.find((p) => p.id === savedActiveId);
+    if (activeProfile) return activeProfile;
+  }
+  
+  // 如果没有保存的或找不到，返回第一个
+  return list[0];
 };
 
 const withTimeout = (runner, ms = DEFAULT_TIMEOUT) =>
@@ -201,6 +213,32 @@ const parseMultipleMessages = (content) => {
 };
 
 /**
+ * 获取角色关联的世界书内容
+ * @param {Array} worldbookIds - 关联的世界书设定 ID 列表
+ * @returns {string} 世界书内容文本
+ */
+const getWorldbookContent = (worldbookIds) => {
+  if (!worldbookIds || !worldbookIds.length) return "";
+
+  const { entries } = loadWorldbookData();
+  if (!entries || !entries.length) return "";
+
+  // 获取关联的设定内容
+  const relatedEntries = entries.filter(
+    (entry) => worldbookIds.includes(entry.id) && entry.enabled !== false
+  );
+
+  if (!relatedEntries.length) return "";
+
+  // 构建世界书内容
+  const contents = relatedEntries.map((entry) => {
+    return `【${entry.name}】\n${entry.content}`;
+  });
+
+  return contents.join("\n\n");
+};
+
+/**
  * 构建角色设定提示词（char 人设）
  * @param {Object} contact - 角色信息
  * @returns {string} 角色设定提示词
@@ -225,6 +263,14 @@ const buildCharPrompt = (contact) => {
 
   if (contact.background) {
     prompt += `背景：${contact.background}\n`;
+  }
+
+  // 添加关联的世界书内容
+  if (contact.worldbookIds && contact.worldbookIds.length > 0) {
+    const worldbookContent = getWorldbookContent(contact.worldbookIds);
+    if (worldbookContent) {
+      prompt += `\n【世界观设定】\n${worldbookContent}\n`;
+    }
   }
 
   return prompt;

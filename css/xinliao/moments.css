@@ -1,0 +1,661 @@
+/**
+ * 动态模块：样式
+ * 朋友圈动态列表和发布编辑器的样式
+ */
+
+/* ========== 动态头部背景 ========== */
+.xinliao-moments-header {
+  position: relative;
+  margin-bottom: 1em;
+}
+
+.xinliao-moments-cover {
+  position: relative;
+  width: 100%;
+  height: 10em;
+  overflow: hidden;
+  background: linear-gradient(135deg, #1a1a2e, #16213e);
+}
+
+.xinliao-moments-cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* 封面点击区域（整个封面可点击更换） */
+.xinliao-moments-cover {
+  cursor: pointer;
+}
+
+.xinliao-moments-cover:hover::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.1);
+  pointer-events: none;
+}
+
+/* 用户信息区域 */
+.xinliao-moments-user {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.6em;
+  padding: 0 1em;
+  margin-top: -2.2em;
+  position: relative;
+  z-index: 1;
+}
+
+.xinliao-moments-username {
+  font-size: 1.1em;
+  font-weight: 600;
+  color: #fff;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+  cursor: pointer;
+}
+
+.xinliao-moments-username:hover {
+  text-decoration: underline;
+}
+
+.xinliao-moments-user-avatar {
+  width: 4em;
+  height: 4em;
+  border-radius: 0.6em;
+  overflow: visible;
+  background: linear-gradient(135deg, #e2ebf0, #cfd9df);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 3px solid #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  cursor: pointer;
+  position: relative;
+}
+
+.xinliao-moments-user-avatar:hover::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 0.6em;
+}
+
+/* 方形头像图片铺满 */
+.xinliao-moments-user-avatar .xinliao-avatar-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 0;
+}
+
+/* 默认 emoji 头像 */
+.xinliao-moments-user-avatar .xinliao-avatar-text {
+  font-size: 1.8em;
+  line-height: 1;
+}
+
+/* 空状态 */
+.xinliao-moments-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3em 1em;
+  text-align: center;
+}
+
+.xinliao-moments-empty-icon {
+  font-size: 3em;
+  margin-bottom: 0.3em;
+  opacity: 0.6;
+}
+
+.xinliao-moments-empty-text {
+  font-size: 1em;
+  color: var(--text-primary);
+  font-weight: 500;
+  margin-bottom: 0.3em;
+}
+
+.xinliao-moments-empty-hint {
+  font-size: 0.8em;
+  color: var(--text-secondary);
+}
+
+/* 动态列表 */
+.xinliao-moment-item {
+  display: flex;
+  gap: 0.75em;
+  padding: 1em;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.15);
+}
+
+.xinliao-moment-item:last-child {
+  border-bottom: none;
+}
+
+/* 动态头像 */
+.xinliao-moment-avatar {
+  width: 2.8em;
+  height: 2.8em;
+  border-radius: 0.6em;
+  overflow: hidden;
+  background: linear-gradient(135deg, #e2ebf0, #cfd9df);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.xinliao-moment-avatar .xinliao-avatar-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.xinliao-moment-avatar .xinliao-avatar-text {
+  font-size: 1.3em;
+}
+
+/* 动态内容区 */
+.xinliao-moment-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4em;
+}
+
+.xinliao-moment-author {
+  font-weight: 600;
+  font-size: 0.95em;
+  color: #576b95;
+}
+
+.xinliao-moment-content {
+  font-size: 0.9em;
+  color: var(--text-primary);
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* 动态图片 */
+.xinliao-moment-images {
+  display: grid;
+  gap: 0.3em;
+  margin-top: 0.4em;
+}
+
+.xinliao-moment-images.single {
+  grid-template-columns: 1fr;
+  max-width: 12em;
+}
+
+.xinliao-moment-images.small {
+  grid-template-columns: repeat(2, 1fr);
+  max-width: 10em;
+}
+
+.xinliao-moment-images.large {
+  grid-template-columns: repeat(3, 1fr);
+  max-width: 14em;
+}
+
+.xinliao-moment-image {
+  aspect-ratio: 1 / 1;
+  border-radius: 0.4em;
+  overflow: hidden;
+  background: #f0f0f0;
+}
+
+.xinliao-moment-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* 动态底部 */
+.xinliao-moment-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 0.3em;
+}
+
+.xinliao-moment-time {
+  font-size: 0.75em;
+  color: var(--text-secondary);
+}
+
+.xinliao-moment-actions {
+  display: flex;
+  gap: 0.8em;
+}
+
+.xinliao-moment-action-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.25em;
+  padding: 0.3em 0.5em;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 0.8em;
+  cursor: pointer;
+  border-radius: 0.4em;
+  transition: background 0.15s ease;
+}
+
+.xinliao-moment-action-btn:hover {
+  background: rgba(148, 163, 184, 0.1);
+}
+
+.xinliao-moment-action-btn:active {
+  background: rgba(148, 163, 184, 0.2);
+}
+
+.xinliao-moment-action-icon {
+  font-size: 0.9em;
+  color: #666;
+}
+
+.xinliao-moment-action-count {
+  font-size: 0.9em;
+}
+
+.xinliao-moment-like.is-liked .xinliao-moment-action-icon {
+  color: #e53e3e;
+}
+
+/* 点赞列表 */
+.xinliao-moment-likes {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.4em;
+  margin-top: 0.5em;
+  padding: 0.5em 0.6em;
+  background: rgba(148, 163, 184, 0.08);
+  border-radius: 0.4em 0.4em 0 0;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+}
+
+.xinliao-moment-likes-icon {
+  color: #e53e3e;
+  font-size: 0.85em;
+  flex-shrink: 0;
+  line-height: 1.4;
+}
+
+.xinliao-moment-likes-names {
+  font-size: 0.85em;
+  color: #576b95;
+  line-height: 1.4;
+  word-break: break-word;
+}
+
+/* 当有点赞时，评论区去掉上圆角 */
+.xinliao-moment-likes + .xinliao-moment-comments {
+  border-radius: 0 0 0.4em 0.4em;
+  margin-top: 0;
+}
+
+/* 评论区 */
+.xinliao-moment-comments {
+  margin-top: 0.5em;
+  padding: 0.5em 0.6em;
+  background: rgba(148, 163, 184, 0.08);
+  border-radius: 0.4em;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3em;
+}
+
+.xinliao-moment-comments.is-empty {
+  display: none;
+}
+
+.xinliao-moment-comment {
+  font-size: 0.85em;
+  line-height: 1.4;
+  cursor: pointer;
+  padding: 0.2em 0;
+  border-radius: 0.2em;
+  transition: background 0.15s ease;
+}
+
+.xinliao-moment-comment:hover {
+  background: rgba(148, 163, 184, 0.1);
+}
+
+.xinliao-moment-comment-author {
+  color: #576b95;
+  font-weight: 500;
+}
+
+.xinliao-moment-comment-author::after {
+  content: "：";
+  color: var(--text-primary);
+  font-weight: 400;
+}
+
+/* 回复格式 */
+.xinliao-comment-reply-to {
+  color: var(--text-secondary);
+  font-weight: 400;
+  margin-left: 0.2em;
+}
+
+.xinliao-comment-reply-to::before {
+  content: "";
+}
+
+.xinliao-moment-comment-text {
+  color: var(--text-primary);
+}
+
+/* 评论输入框 */
+.xinliao-comment-input-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+  margin-top: 0.5em;
+  margin-left: -3.55em; /* 向左偏移，与动态内容对齐 */
+  padding: 0.4em 0;
+  background: transparent;
+  border-radius: 0;
+}
+
+.xinliao-comment-input-wrapper.is-hidden {
+  display: none;
+}
+
+.xinliao-comment-input {
+  flex: 1;
+  min-width: 0;
+  padding: 0.5em 0.8em;
+  border: 1px solid rgba(148, 163, 184, 0.3);
+  border-radius: 1em;
+  background: #fff;
+  font-size: 0.85em;
+  color: var(--text-primary);
+  outline: none;
+  transition: border-color 0.15s ease;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.xinliao-comment-input:focus {
+  border-color: rgba(125, 165, 255, 0.5);
+}
+
+.xinliao-comment-input::placeholder {
+  color: var(--text-secondary);
+}
+
+.xinliao-comment-send-btn {
+  padding: 0.4em 0.8em;
+  border: none;
+  border-radius: 0.8em;
+  background: linear-gradient(135deg, #07c160, #06ad56);
+  color: #fff;
+  font-size: 0.8em;
+  font-weight: 500;
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.xinliao-comment-send-btn:hover {
+  opacity: 0.9;
+}
+
+.xinliao-comment-send-btn:active {
+  opacity: 0.8;
+}
+
+/* ========== 发布编辑器 ========== */
+.xinliao-moments-editor {
+  position: absolute;
+  inset: 0;
+  background: #f8fafc;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+}
+
+.xinliao-moments-editor.is-hidden {
+  display: none;
+}
+
+.xinliao-editor-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.8em 1em;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.2);
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.xinliao-editor-title {
+  font-weight: 600;
+  font-size: 1em;
+  color: var(--text-primary);
+}
+
+.xinliao-editor-cancel {
+  padding: 0.4em 0.8em;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 0.9em;
+  cursor: pointer;
+}
+
+.xinliao-editor-publish {
+  padding: 0.4em 1em;
+  border: none;
+  border-radius: 0.5em;
+  background: linear-gradient(135deg, #07c160, #06ad56);
+  color: #fff;
+  font-size: 0.9em;
+  font-weight: 500;
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+}
+
+.xinliao-editor-publish:hover {
+  opacity: 0.9;
+}
+
+.xinliao-editor-publish:active {
+  opacity: 0.8;
+}
+
+.xinliao-editor-body {
+  flex: 1;
+  padding: 1em;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1em;
+}
+
+.xinliao-editor-textarea {
+  width: 100%;
+  min-height: 8em;
+  padding: 0.8em;
+  border: none;
+  border-radius: 0.6em;
+  background: rgba(255, 255, 255, 0.9);
+  color: var(--text-primary);
+  font-size: 0.95em;
+  line-height: 1.5;
+  resize: none;
+  outline: none;
+}
+
+.xinliao-editor-textarea::placeholder {
+  color: var(--text-secondary);
+}
+
+/* 图片预览区 */
+.xinliao-editor-images {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5em;
+}
+
+.xinliao-editor-image {
+  position: relative;
+  aspect-ratio: 1 / 1;
+  border-radius: 0.5em;
+  overflow: hidden;
+  background: #f0f0f0;
+}
+
+.xinliao-editor-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.xinliao-editor-image-remove {
+  position: absolute;
+  top: 0.2em;
+  right: 0.2em;
+  width: 1.4em;
+  height: 1.4em;
+  border: none;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.5);
+  color: #fff;
+  font-size: 0.9em;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  line-height: 1;
+}
+
+.xinliao-editor-image-remove:hover {
+  background: rgba(0, 0, 0, 0.7);
+}
+
+/* 添加图片按钮 */
+.xinliao-editor-add-image {
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+  padding: 0.6em 1em;
+  border: 1px dashed rgba(148, 163, 184, 0.4);
+  border-radius: 0.6em;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 0.85em;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.xinliao-editor-add-image:hover {
+  border-color: rgba(148, 163, 184, 0.6);
+  background: rgba(148, 163, 184, 0.05);
+}
+
+.xinliao-editor-add-icon {
+  font-size: 1.2em;
+}
+
+.xinliao-editor-file-input {
+  display: none;
+}
+
+/* ========== 右上角相机按钮 ========== */
+.xinliao-camera-btn {
+  position: relative;
+  width: 2em;
+  height: 2em;
+}
+
+/* 相机机身 */
+.xinliao-camera-btn::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 1.2em;
+  height: 0.9em;
+  border: 2px solid #333;
+  border-radius: 0.15em;
+}
+
+/* 相机镜头 */
+.xinliao-camera-btn::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 0.45em;
+  height: 0.45em;
+  border: 2px solid #333;
+  border-radius: 50%;
+  background: transparent;
+}
+
+/* ========== 图片选择弹窗 ========== */
+.xinliao-image-picker-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.xinliao-image-picker-dialog {
+  background: #fff;
+  border-radius: 1em;
+  padding: 1.5em;
+  min-width: 16em;
+  max-width: 90%;
+  box-shadow: 0 0.5em 2em rgba(0, 0, 0, 0.2);
+  display: flex;
+  flex-direction: column;
+  gap: 1em;
+}
+
+.xinliao-image-picker-title {
+  font-size: 1.1em;
+  font-weight: 600;
+  text-align: center;
+  color: var(--text-primary);
+}
+
+.xinliao-image-picker-options {
+  display: flex;
+  gap: 0.8em;
+}
+
+.xinliao-image-picker-options .xinliao-btn {
+  flex: 1;
+}
+
+.xinliao-image-picker-cancel {
+  padding: 0.6em 1em;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 0.9em;
+  cursor: pointer;
+  text-align: center;
+}
+
+.xinliao-image-picker-cancel:hover {
+  color: var(--text-primary);
+}

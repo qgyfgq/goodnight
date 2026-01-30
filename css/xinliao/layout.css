@@ -35,6 +35,14 @@
   letter-spacing: 0.02em;
 }
 
+.xinliao-nav-right {
+  position: absolute;
+  right: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.3em;
+}
+
 .xinliao-content {
   flex: 1;
   display: flex;
@@ -57,6 +65,13 @@
   gap: 0.75em;
   overflow-y: auto;
   padding-right: 0.2em;
+  /* 隐藏滚动条但保留滚动功能 */
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE/Edge */
+}
+
+.xinliao-panel::-webkit-scrollbar {
+  display: none; /* Chrome/Safari/Opera */
 }
 
 .xinliao-panel.active {

@@ -8,6 +8,14 @@
   <link rel="stylesheet" href="css/theme.css" />
   <link rel="stylesheet" href="css/layout.css" />
   <link rel="stylesheet" href="css/components.css" />
+  <link rel="stylesheet" href="css/xinliao/layout.css" />
+  <link rel="stylesheet" href="css/xinliao/components.css" />
+  <link rel="stylesheet" href="css/xinliao/panels.css" />
+  <link rel="stylesheet" href="css/xinliao/messages.css" />
+  <link rel="stylesheet" href="css/xinliao/chat.css" />
+  <link rel="stylesheet" href="css/xinliao/moments.css" />
+  <link rel="stylesheet" href="css/worldbook/layout.css" />
+  <link rel="stylesheet" href="css/worldbook/components.css" />
   <link rel="stylesheet" href="css/settings.css" />
 </head>
 <body>
@@ -77,14 +85,14 @@
                 <span class="settings-icon icon-api"></span>
                 <span class="settings-text">API 设置</span>
               </button>
-              <div class="settings-item">
+              <button class="settings-item settings-link" id="dataSettingsEntry" aria-label="数据管理">
                 <span class="settings-icon icon-data"></span>
-                <span class="settings-text">数据设置</span>
-              </div>
-              <div class="settings-item">
+                <span class="settings-text">数据管理</span>
+              </button>
+              <button class="settings-item settings-link" id="soundSettingsEntry" aria-label="提示音设置">
                 <span class="settings-icon icon-bell"></span>
                 <span class="settings-text">提示音设置</span>
-              </div>
+              </button>
               <div class="settings-item">
                 <span class="settings-icon icon-voice"></span>
                 <span class="settings-text">语音设置</span>
@@ -123,12 +131,21 @@
                 <button class="btn ghost" id="btnTest">测试连接</button>
               </div>
 
+              <div class="field">
+                <label for="profileSelect">已保存的配置</label>
+                <div class="profile-select-row">
+                  <select id="profileSelect" class="profile-select">
+                    <option value="">-- 选择配置 --</option>
+                  </select>
+                  <button class="btn secondary" id="btnApplyProfile" type="button">应用</button>
+                  <button class="btn ghost" id="btnDeleteProfile" type="button">删除</button>
+                </div>
+              </div>
+
               <div class="field inline with-popup">
                 <div class="field-group">
-                  <label>配置列表</label>
-                  <div id="profileList" class="profile-list">
-                    <div class="profile-empty">暂无配置</div>
-                  </div>
+                  <label>保存当前配置</label>
+                  <p class="field-hint">将当前设置保存为新配置或覆盖已有配置</p>
                 </div>
                 <button class="btn primary" id="btnSave">保存配置</button>
 
@@ -143,6 +160,591 @@
                   </div>
                 </div>
               </div>
+            </div>
+          </div>
+
+          <div class="settings-section data-settings" id="dataSettings">
+            <div class="data-settings-main active" id="dataSettingsMain">
+              <div class="settings-list">
+                <button class="settings-item settings-link" id="storageEntry" aria-label="存储空间">
+                  <span class="settings-icon icon-storage"></span>
+                  <span class="settings-text">存储空间</span>
+                </button>
+                <button class="settings-item settings-link" id="backupEntry" aria-label="数据备份">
+                  <span class="settings-icon icon-backup"></span>
+                  <span class="settings-text">数据备份</span>
+                </button>
+                <button class="settings-item settings-link" id="cleanEntry" aria-label="清理数据">
+                  <span class="settings-icon icon-clean"></span>
+                  <span class="settings-text">清理数据</span>
+                </button>
+              </div>
+            </div>
+
+            <div class="data-settings-detail" id="storageDetail">
+              <div class="settings-card">
+                <h3 class="settings-subtitle">📦 存储空间</h3>
+                <div class="field">
+                  <div class="storage-bar">
+                    <div class="storage-bar-fill" id="storageBarFill"></div>
+                  </div>
+                  <div class="storage-text" id="storageText">计算中...</div>
+                </div>
+                <div class="storage-list" id="storageList"></div>
+                <div class="data-hint">
+                  <p>💡 <strong>节省空间建议：</strong></p>
+                  <ul>
+                    <li>使用图片链接代替上传图片</li>
+                    <li>定期清理不需要的聊天记录</li>
+                    <li>删除不再使用的联系人</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            <div class="data-settings-detail" id="backupDetail">
+              <div class="settings-card">
+                <h3 class="settings-subtitle">💾 数据备份</h3>
+                <div class="field">
+                  <label>导出备份</label>
+                  <p class="field-hint">将所有数据导出为 JSON 文件</p>
+                  <button class="btn primary" id="btnExportBackup">📤 导出备份</button>
+                </div>
+                <div class="field">
+                  <label>导入备份</label>
+                  <p class="field-hint">从 JSON 文件恢复数据（会覆盖现有数据）</p>
+                  <input type="file" id="importBackupInput" accept="application/json" class="file-input" />
+                  <button class="btn secondary" id="btnImportBackup">📥 选择文件导入</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="data-settings-detail" id="cleanDetail">
+              <div class="settings-card">
+                <h3 class="settings-subtitle">🗑️ 清理数据</h3>
+                <div class="field">
+                  <label>聊天记录</label>
+                  <p class="field-hint">清空所有会话和聊天消息</p>
+                  <button class="btn ghost" id="btnClearChats">清空聊天记录</button>
+                </div>
+                <div class="field">
+                  <label>动态数据</label>
+                  <p class="field-hint">清空所有朋友圈动态</p>
+                  <button class="btn ghost" id="btnClearMoments">清空动态数据</button>
+                </div>
+                <div class="field">
+                  <label>所有数据</label>
+                  <p class="field-hint">清空所有本地存储数据（不可恢复）</p>
+                  <button class="btn danger" id="btnClearAll">清空所有数据</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="settings-section sound-settings" id="soundSettings" data-detail="list">
+            <div class="sound-settings-main active" id="soundSettingsMain">
+              <div class="settings-list">
+                <button class="settings-item settings-link" id="uiSoundEntry" aria-label="UI 提示音">
+                  <span class="settings-icon icon-bell"></span>
+                  <span class="settings-text">UI 提示音</span>
+                </button>
+                <button class="settings-item settings-link" id="msgSoundEntry" aria-label="消息提示音">
+                  <span class="settings-icon icon-bell"></span>
+                  <span class="settings-text">消息提示音</span>
+                </button>
+              </div>
+            </div>
+
+            <div class="sound-settings-detail" id="uiSoundDetail">
+              <div class="settings-card">
+                <h3 class="settings-subtitle">UI 提示音</h3>
+                <div class="field inline">
+                  <div class="field-group">
+                    <label for="uiSoundEnable">启用</label>
+                    <label class="switch">
+                      <input id="uiSoundEnable" type="checkbox" />
+                      <span class="slider"></span>
+                    </label>
+                  </div>
+                </div>
+                <div class="field">
+                  <label for="uiSoundVolume">音量</label>
+                  <input id="uiSoundVolume" type="range" min="0" max="1" step="0.01" />
+                  <div class="range-value" id="uiSoundVolumeValue">0%</div>
+                </div>
+                <div class="field">
+                  <label for="uiSoundSource">音频选择</label>
+                  <select id="uiSoundSource">
+                    <option value="default">默认音频</option>
+                    <option value="custom">用户上传</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label for="uiSoundFile">上传音频 (mp3 / wav)</label>
+                  <input id="uiSoundFile" class="file-input" type="file" accept="audio/mpeg,audio/wav" />
+                  <p class="field-hint" id="uiSoundFileHint">未上传时使用默认音频</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="sound-settings-detail" id="msgSoundDetail">
+              <div class="settings-card">
+                <h3 class="settings-subtitle">消息提示音</h3>
+                <div class="field inline">
+                  <div class="field-group">
+                    <label for="msgSoundEnable">启用</label>
+                    <label class="switch">
+                      <input id="msgSoundEnable" type="checkbox" />
+                      <span class="slider"></span>
+                    </label>
+                  </div>
+                </div>
+                <div class="field">
+                  <label for="msgSoundVolume">音量</label>
+                  <input id="msgSoundVolume" type="range" min="0" max="1" step="0.01" />
+                  <div class="range-value" id="msgSoundVolumeValue">0%</div>
+                </div>
+                <div class="field">
+                  <label for="msgSoundSource">音频选择</label>
+                  <select id="msgSoundSource">
+                    <option value="default">默认音频</option>
+                    <option value="custom">用户上传</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label for="msgSoundFile">上传音频 (mp3 / wav)</label>
+                  <input id="msgSoundFile" class="file-input" type="file" accept="audio/mpeg,audio/wav" />
+                  <p class="field-hint" id="msgSoundFileHint">未上传时使用默认音频</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="xinliao-view glass" id="xinliaoView">
+          <header class="xinliao-nav">
+            <button class="xinliao-back" id="xinliaoBack" aria-label="返回">‹</button>
+            <div class="xinliao-title">信聊</div>
+            <div class="xinliao-nav-right">
+              <button class="xinliao-icon-btn xinliao-nav-add" id="xinliaoMessagesAdd" aria-label="新建会话">＋</button>
+              <div class="xinliao-dropdown is-hidden" id="xinliaoContactsDropdown">
+                <button class="xinliao-icon-btn xinliao-nav-add" id="xinliaoContactsAdd" aria-label="添加联系人">＋</button>
+                <div class="xinliao-dropdown-menu is-hidden" id="xinliaoContactsMenu">
+                  <button class="xinliao-dropdown-item" id="xinliaoDropdownCreate">
+                    <span class="xinliao-dropdown-icon">✏️</span>
+                    <span>创建角色</span>
+                  </button>
+                  <button class="xinliao-dropdown-item" id="xinliaoDropdownImport">
+                    <span class="xinliao-dropdown-icon">📁</span>
+                    <span>导入文件</span>
+                  </button>
+                </div>
+              </div>
+              <button class="xinliao-icon-btn xinliao-nav-add xinliao-camera-btn is-hidden" id="xinliaoMomentsAdd" aria-label="发布动态"></button>
+            </div>
+          </header>
+
+          <div class="xinliao-panels">
+            <section class="xinliao-panel active" id="xinliaoPanel-messages">
+              <!-- 删除栏 -->
+              <div class="xinliao-delete-bar is-hidden" id="xinliaoDeleteBar">
+                <button class="xinliao-delete-cancel" id="xinliaoDeleteCancel">取消</button>
+                <span class="xinliao-delete-info">已选择 <span id="xinliaoDeleteCount">0</span> 个</span>
+                <button class="xinliao-delete-btn" id="xinliaoDeleteBtn">删除</button>
+              </div>
+              <div class="xinliao-message-actions is-hidden" id="xinliaoMessageActions">
+                <div class="xinliao-action-row">
+                  <button class="xinliao-btn secondary" id="xinliaoCreateSingle">新建聊天</button>
+                  <button class="xinliao-btn primary" id="xinliaoCreateGroup">新建群聊</button>
+                </div>
+                <div class="xinliao-form-hint">从联系人选择角色</div>
+                <div class="xinliao-message-select" id="xinliaoMessageSelectList"></div>
+                <div class="xinliao-field is-hidden">
+                  <label for="xinliaoGroupName">群聊名称</label>
+                  <input id="xinliaoGroupName" type="text" placeholder="多选后可填写群聊名" />
+                </div>
+                <div class="xinliao-actions">
+                  <button class="xinliao-btn primary is-hidden" id="xinliaoGroupConfirm">确认创建群聊</button>
+                  <button class="xinliao-btn" id="xinliaoMessageCancel">收起</button>
+                </div>
+                <div class="xinliao-form-hint warning is-hidden" id="xinliaoMessageHint"></div>
+              </div>
+              <div class="xinliao-list" id="xinliaoMessagesList"></div>
+            </section>
+
+            <section class="xinliao-panel" id="xinliaoPanel-contacts">
+              <!-- 联系人删除栏 -->
+              <div class="xinliao-delete-bar is-hidden" id="xinliaoContactsDeleteBar">
+                <button class="xinliao-delete-cancel" id="xinliaoContactsDeleteCancel">取消</button>
+                <span class="xinliao-delete-info">已选择 <span id="xinliaoContactsDeleteCount">0</span> 个</span>
+                <button class="xinliao-delete-btn" id="xinliaoContactsDeleteBtn">删除</button>
+              </div>
+              <div class="xinliao-search">
+                <input
+                  id="xinliaoContactsSearch"
+                  type="text"
+                  placeholder="搜索角色"
+                  autocomplete="off"
+                />
+              </div>
+              <div class="xinliao-contact-actions is-hidden" id="xinliaoContactActions">
+                <div class="xinliao-action-row">
+                  <button class="xinliao-btn secondary" id="xinliaoShowCreate">创建角色</button>
+                  <button class="xinliao-btn ghost" id="xinliaoShowImport">导入文件</button>
+                </div>
+                <div class="xinliao-form xinliao-form-create is-hidden" id="xinliaoCreateForm">
+                  <div class="xinliao-field">
+                    <label for="xinliaoAvatarInput">头像</label>
+                    <input id="xinliaoAvatarInput" type="text" placeholder="例如：https://... 或 😀" />
+                  </div>
+                  <div class="xinliao-field">
+                    <label for="xinliaoAvatarFileInput">上传头像图片</label>
+                    <input id="xinliaoAvatarFileInput" type="file" accept="image/*" />
+                    <div class="xinliao-form-hint">选择图片后会自动填入头像</div>
+                  </div>
+                  <div class="xinliao-field">
+                    <label for="xinliaoNameInput">姓名</label>
+                    <input id="xinliaoNameInput" type="text" placeholder="请输入姓名" />
+                  </div>
+                  <div class="xinliao-field">
+                    <label for="xinliaoPersonaInput">具体人设</label>
+                    <textarea id="xinliaoPersonaInput" rows="3" placeholder="描述角色性格/背景"></textarea>
+                  </div>
+                  <button class="xinliao-btn primary" id="xinliaoCreateConfirm">添加角色</button>
+                </div>
+                <div class="xinliao-form xinliao-form-import is-hidden" id="xinliaoImportForm">
+                  <div class="xinliao-field">
+                    <label for="xinliaoImportInput">导入角色文件</label>
+                    <input id="xinliaoImportInput" type="file" accept="application/json,image/png,.json,.png" />
+                  </div>
+                  <div class="xinliao-form-hint">支持 JSON 文件或 PNG 角色卡（Character Card）</div>
+                </div>
+                <div class="xinliao-form-hint warning is-hidden" id="xinliaoContactsHint"></div>
+              </div>
+              <div class="xinliao-list" id="xinliaoContactsList"></div>
+            </section>
+
+            <section class="xinliao-panel" id="xinliaoPanel-moments">
+              <!-- 动态背景头部 -->
+              <div class="xinliao-moments-header">
+                <div class="xinliao-moments-cover" id="xinliaoMomentsCover">
+                  <img src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=400&fit=crop" alt="cover" id="xinliaoMomentsCoverImg" />
+                </div>
+                <div class="xinliao-moments-user">
+                  <span class="xinliao-moments-username" id="xinliaoMomentsUsername">我</span>
+                  <div class="xinliao-moments-user-avatar" id="xinliaoMomentsUserAvatar">
+                    <span class="xinliao-avatar-text">👤</span>
+                  </div>
+                </div>
+              </div>
+              <div class="xinliao-note is-hidden" id="xinliaoMomentsStatus">使用占位数据</div>
+              <div class="xinliao-list" id="xinliaoMomentsList"></div>
+            </section>
+
+            <!-- 动态发布编辑器 -->
+            <div class="xinliao-moments-editor is-hidden" id="xinliaoMomentsEditor">
+              <header class="xinliao-editor-header">
+                <button class="xinliao-editor-cancel" id="xinliaoMomentsCancel" type="button">取消</button>
+                <span class="xinliao-editor-title">发布动态</span>
+                <button class="xinliao-editor-publish" id="xinliaoMomentsPublish" type="button">发布</button>
+              </header>
+              <div class="xinliao-editor-body">
+                <textarea 
+                  class="xinliao-editor-textarea" 
+                  id="xinliaoMomentsContent" 
+                  placeholder="这一刻的想法..."
+                  rows="4"
+                ></textarea>
+                <div class="xinliao-editor-images" id="xinliaoMomentsImages"></div>
+                <label class="xinliao-editor-add-image">
+                  <span class="xinliao-editor-add-icon">🖼️</span>
+                  <span>添加图片</span>
+                  <input 
+                    type="file" 
+                    id="xinliaoMomentsImageInput" 
+                    class="xinliao-editor-file-input" 
+                    accept="image/*" 
+                    multiple 
+                  />
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <div class="xinliao-tabbar" id="xinliaoTabs"></div>
+
+          <!-- 联系人详情面板 -->
+          <div class="xinliao-contact-detail is-hidden" id="xinliaoContactDetail">
+            <div class="xinliao-contact-detail-title">角色详情</div>
+            <div class="xinliao-form">
+              <div class="xinliao-field">
+                <label for="xinliaoDetailAvatar">头像</label>
+                <input id="xinliaoDetailAvatar" type="text" placeholder="例如：https://... 或 😀" />
+              </div>
+              <div class="xinliao-field">
+                <label for="xinliaoDetailAvatarFile">上传头像图片</label>
+                <input id="xinliaoDetailAvatarFile" type="file" accept="image/*" />
+                <div class="xinliao-form-hint">选择图片后会自动填入头像</div>
+              </div>
+              <div class="xinliao-field">
+                <label for="xinliaoDetailName">姓名</label>
+                <input id="xinliaoDetailName" type="text" placeholder="请输入姓名" />
+              </div>
+              <div class="xinliao-field">
+                <label for="xinliaoDetailPersona">具体人设</label>
+                <textarea id="xinliaoDetailPersona" rows="3" placeholder="描述角色性格/背景"></textarea>
+              </div>
+              <div class="xinliao-field xinliao-worldbook-field">
+                <div class="xinliao-worldbook-toggle" id="xinliaoWorldbookToggle">
+                  <span class="xinliao-worldbook-toggle-icon">📚</span>
+                  <span class="xinliao-worldbook-toggle-text">世界书关联</span>
+                  <span class="xinliao-worldbook-toggle-count" id="xinliaoWorldbookCount">0 个</span>
+                  <span class="xinliao-worldbook-toggle-arrow">›</span>
+                </div>
+                <div class="xinliao-worldbook-select is-hidden" id="xinliaoWorldbookSelect">
+                  <div class="xinliao-worldbook-list" id="xinliaoWorldbookList"></div>
+                  <div class="xinliao-form-hint">选择要关联的世界书分组和设定</div>
+                </div>
+              </div>
+            </div>
+            <div class="xinliao-actions">
+              <button class="xinliao-btn primary" id="xinliaoDetailSave">保存修改</button>
+              <button class="xinliao-btn" id="xinliaoDetailClose">关闭</button>
+            </div>
+            <div class="xinliao-form-hint warning is-hidden" id="xinliaoDetailHint"></div>
+          </div>
+
+          <!-- 聊天界面 -->
+          <div class="xinliao-chat is-hidden" id="xinliaoChat">
+            <header class="xinliao-chat-header">
+              <button class="xinliao-back" id="xinliaoChatBack" aria-label="返回">‹</button>
+              <div class="xinliao-chat-header-center">
+                <div class="xinliao-chat-header-name" id="xinliaoChatName">聊天</div>
+                <div class="xinliao-chat-header-status is-hidden" id="xinliaoChatStatus">正在输入中</div>
+              </div>
+              <div class="xinliao-chat-header-spacer"></div>
+            </header>
+            <!-- 消息删除栏 -->
+            <div class="xinliao-chat-delete-bar is-hidden" id="xinliaoChatDeleteBar">
+              <button class="xinliao-chat-delete-cancel" id="xinliaoChatDeleteCancel">取消</button>
+              <span class="xinliao-chat-delete-info">已选择 <span id="xinliaoChatDeleteCount">0</span> 条</span>
+              <button class="xinliao-chat-delete-btn" id="xinliaoChatDeleteBtn">删除</button>
+            </div>
+            <div class="xinliao-chat-messages" id="xinliaoChatMessages"></div>
+            <div class="xinliao-chat-input-bar">
+              <button class="xinliao-chat-add-btn" type="button" aria-label="更多">＋</button>
+              <textarea 
+                class="xinliao-chat-input" 
+                id="xinliaoChatInput" 
+                placeholder="输入消息..." 
+                rows="1"
+              ></textarea>
+              <button class="xinliao-chat-send-btn" id="xinliaoChatSend" type="button">发送</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- 世界书视图 -->
+        <section class="worldbook-view glass" id="worldbookView">
+          <header class="worldbook-nav">
+            <button class="worldbook-back" id="worldbookBack" aria-label="返回">‹</button>
+            <div class="worldbook-title">世界书</div>
+            <div class="worldbook-nav-right">
+              <div class="worldbook-dropdown" id="worldbookDropdown">
+                <button class="worldbook-add-btn" id="worldbookAdd" aria-label="添加">＋</button>
+                <div class="worldbook-dropdown-menu is-hidden" id="worldbookDropdownMenu">
+                  <button class="worldbook-dropdown-item" id="worldbookAddGroup">
+                    <span class="worldbook-dropdown-icon">📁</span>
+                    <span>新建分组</span>
+                  </button>
+                  <button class="worldbook-dropdown-item" id="worldbookAddEntry">
+                    <span class="worldbook-dropdown-icon">📝</span>
+                    <span>新建设定</span>
+                  </button>
+                  <button class="worldbook-dropdown-item" id="worldbookUpload">
+                    <span class="worldbook-dropdown-icon">📤</span>
+                    <span>上传文件</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </header>
+
+          <div class="worldbook-content">
+            <!-- 未分组提示 -->
+            <div class="worldbook-ungrouped-hint is-hidden" id="worldbookUngroupedHint">
+              <span class="worldbook-ungrouped-hint-icon">📦</span>
+              <span class="worldbook-ungrouped-hint-text">有 <span id="worldbookUngroupedCount">0</span> 个未分组设定，点击批量处理</span>
+              <span class="worldbook-ungrouped-hint-arrow">›</span>
+            </div>
+            <div class="worldbook-groups" id="worldbookGroups"></div>
+          </div>
+
+          <!-- 隐藏的文件上传输入 -->
+          <input type="file" id="worldbookUploadInput" class="worldbook-file-input" accept=".json,.docx,application/json,application/vnd.openxmlformats-officedocument.wordprocessingml.document" />
+
+          <!-- 新建分组弹窗 -->
+          <div class="worldbook-popup" id="worldbookGroupPopup">
+            <div class="worldbook-popup-card">
+              <div class="worldbook-popup-title">新建分组</div>
+              <div class="worldbook-popup-field">
+                <label for="worldbookGroupName">分组名称</label>
+                <input type="text" id="worldbookGroupName" placeholder="请输入分组名称" />
+              </div>
+              <div class="worldbook-popup-actions">
+                <button class="worldbook-popup-btn ghost" id="worldbookGroupCancel">取消</button>
+                <button class="worldbook-popup-btn primary" id="worldbookGroupConfirm">确定</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- 新建设定弹窗 -->
+          <div class="worldbook-popup" id="worldbookEntryPopup">
+            <div class="worldbook-popup-card">
+              <div class="worldbook-popup-title">新建设定</div>
+              <div class="worldbook-popup-field">
+                <label for="worldbookEntryName">设定名称</label>
+                <input type="text" id="worldbookEntryName" placeholder="请输入设定名称" />
+              </div>
+              <div class="worldbook-popup-field">
+                <label for="worldbookEntryContent">设定内容</label>
+                <textarea id="worldbookEntryContent" rows="4" placeholder="请输入设定内容"></textarea>
+              </div>
+              <div class="worldbook-popup-field">
+                <label for="worldbookEntryGroup">所属分组</label>
+                <select id="worldbookEntryGroup">
+                  <option value="">未分组</option>
+                </select>
+              </div>
+              <div class="worldbook-popup-actions">
+                <button class="worldbook-popup-btn ghost" id="worldbookEntryCancel">取消</button>
+                <button class="worldbook-popup-btn primary" id="worldbookEntryConfirm">确定</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- 分组详情面板 -->
+          <div class="worldbook-group-detail" id="worldbookGroupDetail">
+            <header class="worldbook-detail-header">
+              <button class="worldbook-detail-back" id="worldbookGroupDetailBack">‹</button>
+              <div class="worldbook-detail-title" id="worldbookGroupDetailTitle">分组详情</div>
+              <div class="worldbook-detail-actions">
+                <button class="worldbook-detail-btn rename" id="worldbookGroupDetailRename">重命名</button>
+                <button class="worldbook-detail-btn delete" id="worldbookGroupDetailDelete">删除分组</button>
+              </div>
+            </header>
+            <!-- 批量操作工具栏 -->
+            <div class="worldbook-group-toolbar">
+              <button class="worldbook-group-toolbar-btn" id="worldbookGroupSelectAll">全选</button>
+              <select class="worldbook-group-toolbar-select" id="worldbookGroupMoveSelect">
+                <option value="">移动到...</option>
+              </select>
+              <button class="worldbook-group-toolbar-btn delete" id="worldbookGroupBatchDelete" disabled>删除</button>
+            </div>
+            <div class="worldbook-group-detail-content">
+              <div class="worldbook-group-detail-list" id="worldbookGroupDetailList"></div>
+            </div>
+            <!-- 批量操作底栏 -->
+            <div class="worldbook-group-footer is-hidden" id="worldbookGroupFooter">
+              <span class="worldbook-group-footer-count">已选择 <span id="worldbookGroupSelectedCount">0</span> 个</span>
+            </div>
+          </div>
+
+          <!-- 重命名分组弹窗 -->
+          <div class="worldbook-popup" id="worldbookRenamePopup">
+            <div class="worldbook-popup-card">
+              <div class="worldbook-popup-title">重命名分组</div>
+              <div class="worldbook-popup-field">
+                <label for="worldbookRenameInput">分组名称</label>
+                <input type="text" id="worldbookRenameInput" placeholder="请输入新名称" />
+              </div>
+              <div class="worldbook-popup-actions">
+                <button class="worldbook-popup-btn ghost" id="worldbookRenameCancel">取消</button>
+                <button class="worldbook-popup-btn primary" id="worldbookRenameConfirm">确定</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- 设定详情面板 -->
+          <div class="worldbook-detail" id="worldbookDetail">
+            <header class="worldbook-detail-header">
+              <button class="worldbook-detail-back" id="worldbookDetailBack">‹</button>
+              <div class="worldbook-detail-title" id="worldbookDetailTitle">设定详情</div>
+              <div class="worldbook-detail-actions">
+                <button class="worldbook-detail-btn delete" id="worldbookDetailDelete">删除</button>
+                <button class="worldbook-detail-btn save" id="worldbookDetailSave">保存</button>
+              </div>
+            </header>
+            <div class="worldbook-detail-content">
+              <div class="worldbook-detail-field">
+                <label for="worldbookDetailName">设定名称</label>
+                <input type="text" id="worldbookDetailName" placeholder="请输入设定名称" />
+              </div>
+              <div class="worldbook-detail-field">
+                <label for="worldbookDetailContent">设定内容</label>
+                <textarea id="worldbookDetailContent" rows="8" placeholder="请输入设定内容"></textarea>
+              </div>
+              <div class="worldbook-detail-field">
+                <label for="worldbookDetailGroup">所属分组</label>
+                <select id="worldbookDetailGroup">
+                  <option value="">未分组</option>
+                </select>
+              </div>
+              <div class="worldbook-detail-field worldbook-detail-switch">
+                <label for="worldbookDetailEnabled">启用此设定</label>
+                <label class="switch">
+                  <input type="checkbox" id="worldbookDetailEnabled" checked />
+                  <span class="slider"></span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <!-- 导入弹窗 -->
+          <div class="worldbook-popup worldbook-import-popup" id="worldbookImportPopup">
+            <div class="worldbook-popup-card">
+              <div class="worldbook-popup-title">导入世界书</div>
+              <div class="worldbook-import-info" id="worldbookImportInfo">
+                <div class="worldbook-import-info-title" id="worldbookImportFileName">文件名</div>
+                <div class="worldbook-import-info-count" id="worldbookImportCount">共 0 个设定</div>
+              </div>
+              <div class="worldbook-popup-field">
+                <label for="worldbookImportGroup">导入到分组</label>
+                <select id="worldbookImportGroup">
+                  <option value="">未分组</option>
+                  <option value="__new__">+ 新建分组...</option>
+                </select>
+              </div>
+              <div class="worldbook-popup-field is-hidden" id="worldbookImportNewGroupField">
+                <label for="worldbookImportNewGroup">新分组名称</label>
+                <input type="text" id="worldbookImportNewGroup" placeholder="请输入新分组名称" />
+              </div>
+              <div class="worldbook-popup-actions">
+                <button class="worldbook-popup-btn ghost" id="worldbookImportCancel">取消</button>
+                <button class="worldbook-popup-btn primary" id="worldbookImportConfirm">导入</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- 批量处理面板 -->
+          <div class="worldbook-batch-panel" id="worldbookBatchPanel">
+            <header class="worldbook-batch-header">
+              <button class="worldbook-detail-back" id="worldbookBatchBack">‹</button>
+              <div class="worldbook-batch-title">批量处理未分组设定</div>
+            </header>
+            <div class="worldbook-batch-toolbar">
+              <button class="worldbook-batch-select-all" id="worldbookBatchSelectAll">全选</button>
+              <select class="worldbook-batch-group-select" id="worldbookBatchGroupSelect">
+                <option value="">选择目标分组</option>
+              </select>
+            </div>
+            <div class="worldbook-batch-content">
+              <div class="worldbook-batch-list" id="worldbookBatchList"></div>
+            </div>
+            <div class="worldbook-batch-footer">
+              <div class="worldbook-batch-count">已选择 <span id="worldbookBatchCount">0</span> 个</div>
+              <button class="worldbook-detail-btn save" id="worldbookBatchMove" disabled>移动到分组</button>
+              <button class="worldbook-detail-btn delete" id="worldbookBatchDelete" disabled>删除选中</button>
             </div>
           </div>
         </section>

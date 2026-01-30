@@ -15,16 +15,21 @@ import { requestChatReply, getActiveProfile } from "./apiClient.js";
 // 获取 DOM 元素的辅助函数
 const getEl = (id) => document.getElementById(id);
 
+// 检测动态相关关键词的正则表达式
+const MOMENT_POST_KEYWORDS = /发(一?条?|个)?动态|发(一?条?|个)?朋友圈|去发动态|去发朋友圈|发条动态|发个动态/i;
+const MOMENT_COMMENT_KEYWORDS = /去评论|给我评论|评论(一下)?我的?动态|评论(一下)?我的?朋友圈|去我动态评论|去我朋友圈评论/i;
+
 /**
  * 初始化聊天模块
  * @param {Object} options - 配置选项
  * @param {Function} options.getContacts - 获取联系人列表的函数
  * @param {Function} options.onBack - 返回回调
  * @param {Function} options.onChatUpdate - 会话更新回调
+ * @param {Object} options.momentsModule - 动态模块接口
  * @returns {Object} 模块接口
  */
 export const initChatModule = (options = {}) => {
-  const { getContacts, onBack, onChatUpdate } = options;
+  const { getContacts, onBack, onChatUpdate, momentsModule } = options;
 
   // 当前会话数据
   let currentChat = null;
@@ -380,6 +385,48 @@ export const initChatModule = (options = {}) => {
   };
 
   /**
+   * 检测消息中的动态相关关键词并触发相应动作
+   * @param {string} content - 消息内容
+   * @param {Object} contact - 当前聊天的角色
+   */
+  const checkMomentKeywords = (content, contact) => {
+    if (!momentsModule || !contact) {
+      console.log("momentsModule 或 contact 不存在", { momentsModule: !!momentsModule, contact: !!contact });
+      return;
+    }
+
+    // 检测发动态关键词
+    if (MOMENT_POST_KEYWORDS.test(content)) {
+      console.log("检测到发动态关键词，触发角色发动态", contact.name);
+      // 延迟执行，让聊天消息先显示
+      setTimeout(() => {
+        console.log("开始执行角色发动态...");
+        momentsModule.publishContactMoment(contact).then(() => {
+          console.log("角色发动态完成");
+        }).catch((err) => {
+          console.error("角色发动态失败:", err);
+        });
+      }, 2000 + Math.random() * 3000);
+      return;
+    }
+
+    // 检测评论关键词
+    if (MOMENT_COMMENT_KEYWORDS.test(content)) {
+      console.log("检测到评论关键词，触发角色评论动态", contact.name);
+      // 延迟执行，让聊天消息先显示
+      setTimeout(() => {
+        console.log("开始执行角色评论动态...");
+        momentsModule.contactCommentOnMoment(contact).then(() => {
+          console.log("角色评论动态完成");
+        }).catch((err) => {
+          console.error("角色评论动态失败:", err);
+        });
+      }, 2000 + Math.random() * 3000);
+      return;
+    }
+  };
+
+  /**
    * 发送用户消息
    * @param {string} content - 消息内容
    */
@@ -401,6 +448,14 @@ export const initChatModule = (options = {}) => {
     if (chatInput) {
       chatInput.value = "";
       chatInput.style.height = "auto";
+    }
+
+    // 检测动态相关关键词（单聊时）
+    if (currentChat.type === "single") {
+      const contact = getContact(currentChat.members[0]);
+      if (contact) {
+        checkMomentKeywords(trimmedContent, contact);
+      }
     }
 
     // 只发送消息，不自动调用 API 获取回复

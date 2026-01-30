@@ -7,6 +7,36 @@ export const initPhotoWidget = () => {
 
   if (!photoImg) return;
 
+  const PHOTO_STORAGE_KEY = 'notebookPhotoWidget';
+  const loadStoredPhoto = () => {
+    try {
+      const raw = localStorage.getItem(PHOTO_STORAGE_KEY);
+      if (!raw) return null;
+      return JSON.parse(raw);
+    } catch (error) {
+      console.warn('读取手账照片失败:', error);
+      return null;
+    }
+  };
+  const savePhoto = (src, alt = '') => {
+    try {
+      localStorage.setItem(
+        PHOTO_STORAGE_KEY,
+        JSON.stringify({ src, alt })
+      );
+    } catch (error) {
+      console.warn('保存手账照片失败:', error);
+    }
+  };
+
+  const storedPhoto = loadStoredPhoto();
+  if (storedPhoto?.src) {
+    photoImg.src = storedPhoto.src;
+    if (storedPhoto.alt) {
+      photoImg.alt = storedPhoto.alt;
+    }
+  }
+
   // 创建菜单元素（如果不存在）
   let menu = document.getElementById('photoMenu');
   let overlay = document.getElementById('photoMenuOverlay');
@@ -77,8 +107,10 @@ export const initPhotoWidget = () => {
       if (file) {
         const reader = new FileReader();
         reader.onload = (event) => {
-          photoImg.src = event.target?.result || '';
+          const result = event.target?.result || '';
+          photoImg.src = result;
           photoImg.alt = file.name;
+          savePhoto(result, file.name);
           closeMenu();
         };
         reader.readAsDataURL(file);
@@ -92,7 +124,9 @@ export const initPhotoWidget = () => {
   document.getElementById('photoMenuUrl').addEventListener('click', () => {
     const url = prompt('请输入图片链接（支持 http/https URL）:', photoImg.src);
     if (url && url.trim()) {
-      photoImg.src = url.trim();
+      const nextUrl = url.trim();
+      photoImg.src = nextUrl;
+      savePhoto(nextUrl, photoImg.alt || '');
       closeMenu();
     }
   });

@@ -69,9 +69,18 @@ const buildGroupAvatarMarkup = (members, contacts) => {
  */
 const buildChatItemMarkup = (chat, contacts, selectMode, selectedIds) => {
   const isGroup = chat.type === "group";
-  const avatarHtml = isGroup
-    ? buildGroupAvatarMarkup(chat.members, contacts)
-    : buildAvatarMarkup(chat.avatar);
+  
+  // 单聊时从联系人列表获取最新头像
+  let avatarHtml;
+  if (isGroup) {
+    avatarHtml = buildGroupAvatarMarkup(chat.members, contacts);
+  } else {
+    // 单聊：从联系人列表中获取最新头像
+    const contactId = chat.members?.[0];
+    const contact = contactId ? contacts.find((c) => c.id === contactId) : null;
+    const currentAvatar = contact?.avatar || chat.avatar;
+    avatarHtml = buildAvatarMarkup(currentAvatar);
+  }
 
   const timeStr = formatTime(chat.lastTime);
   const preview = chat.lastMessage || "暂无消息";

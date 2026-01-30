@@ -1,0 +1,992 @@
+/* 世界书组件样式 */
+
+/* ========== 分组盒子 - 立体箱子效果 ========== */
+.worldbook-group {
+  position: relative;
+  min-height: 120px;
+  perspective: 800px;
+  cursor: pointer;
+}
+
+/* 箱子主体 - 浅栗色 */
+.worldbook-box {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 120px;
+  background: linear-gradient(180deg, #C4956A 0%, #A67B5B 100%);
+  border-radius: 6px 6px 8px 8px;
+  box-shadow: 
+    0 4px 8px rgba(0, 0, 0, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.25),
+    inset 0 -2px 4px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.worldbook-group:hover .worldbook-box {
+  transform: translateY(-2px);
+  box-shadow: 
+    0 6px 12px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.25),
+    inset 0 -2px 4px rgba(0, 0, 0, 0.15);
+}
+
+/* 箱子边框装饰 - 浅栗色 */
+.worldbook-box::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 8px;
+  background: linear-gradient(180deg, #D4A574 0%, #B8956A 100%);
+  border-radius: 6px 6px 0 0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.15);
+}
+
+/* 箱子金属边角 */
+.worldbook-box::after {
+  content: "";
+  position: absolute;
+  bottom: 4px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 30px;
+  height: 12px;
+  background: linear-gradient(180deg, #E8D4B8 0%, #D4C4A8 100%);
+  border-radius: 2px;
+  box-shadow: 
+    0 1px 2px rgba(0, 0, 0, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+
+/* 箱子内部 - 浅栗色内部 */
+.worldbook-box-inner {
+  position: absolute;
+  top: 12px;
+  left: 6px;
+  right: 6px;
+  bottom: 20px;
+  background: linear-gradient(180deg, #8B6B4A 0%, #6B5040 100%);
+  border-radius: 4px;
+  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.35);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* 分组标签 */
+.worldbook-group-label {
+  position: absolute;
+  top: -2px;
+  left: 10px;
+  background: linear-gradient(180deg, #F5E6D3 0%, #E8D5C0 100%);
+  padding: 3px 10px 5px;
+  border-radius: 0 0 4px 4px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  z-index: 10;
+}
+
+.worldbook-group-name {
+  font-size: 10px;
+  font-weight: 600;
+  color: #5A4A3A;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 80px;
+}
+
+.worldbook-group-count {
+  font-size: 9px;
+  color: #8B7355;
+  margin-left: 4px;
+}
+
+/* ========== 空箱子状态 ========== */
+.worldbook-box-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: rgba(255, 255, 255, 0.3);
+  font-size: 11px;
+}
+
+/* ========== 文件/书页效果 ========== */
+.worldbook-entries {
+  flex: 1;
+  padding: 8px 6px 4px;
+  display: flex;
+  flex-direction: column;
+  flex-wrap: nowrap;
+  gap: 2px;
+  overflow: hidden;
+}
+
+/* 设定纸片 - 文件夹标签效果 */
+.worldbook-entry {
+  position: relative;
+  display: flex;
+  align-items: center;
+  padding: 4px 8px 4px 12px;
+  background: linear-gradient(90deg, #F8F4E8 0%, #F0EBD8 100%);
+  border: none;
+  border-radius: 0 3px 3px 0;
+  font-size: 10px;
+  color: #4A3A2A;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  box-shadow: 
+    1px 1px 2px rgba(0, 0, 0, 0.15),
+    -1px 0 0 #E8E0C8;
+  transform-origin: left center;
+  width: 100%;
+  flex-shrink: 0;
+}
+
+/* 文件标签左侧彩色边 */
+.worldbook-entry::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+  background: var(--accent-color, #007AFF);
+  border-radius: 2px 0 0 2px;
+}
+
+/* 不同颜色的标签 */
+.worldbook-entry:nth-child(5n+1)::before { background: #FF6B6B; }
+.worldbook-entry:nth-child(5n+2)::before { background: #4ECDC4; }
+.worldbook-entry:nth-child(5n+3)::before { background: #FFE66D; }
+.worldbook-entry:nth-child(5n+4)::before { background: #95E1D3; }
+.worldbook-entry:nth-child(5n+5)::before { background: #DDA0DD; }
+
+.worldbook-entry:hover {
+  background: linear-gradient(90deg, #FFFEF8 0%, #F8F4E8 100%);
+  transform: translateX(4px);
+  box-shadow: 
+    2px 2px 4px rgba(0, 0, 0, 0.2),
+    -1px 0 0 #E8E0C8;
+}
+
+.worldbook-entry-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 500;
+}
+
+/* 更多文件指示 */
+.worldbook-more {
+  font-size: 9px;
+  color: rgba(255, 255, 255, 0.5);
+  text-align: center;
+  padding: 2px;
+}
+
+/* 弹窗 */
+.worldbook-popup {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 300;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+
+.worldbook-popup.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.worldbook-popup-card {
+  width: 90%;
+  max-width: 320px;
+  background: #FFFFFF;
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+}
+
+.worldbook-popup-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin-bottom: 16px;
+  text-align: center;
+}
+
+.worldbook-popup-field {
+  margin-bottom: 16px;
+}
+
+.worldbook-popup-field label {
+  display: block;
+  font-size: 13px;
+  color: #666666;
+  margin-bottom: 6px;
+}
+
+.worldbook-popup-field input,
+.worldbook-popup-field textarea,
+.worldbook-popup-field select {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #E0E0E0;
+  border-radius: var(--radius-sm);
+  background: #F8F8F8;
+  color: #1a1a1a;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.15s ease;
+}
+
+.worldbook-popup-field input:focus,
+.worldbook-popup-field textarea:focus,
+.worldbook-popup-field select:focus {
+  border-color: var(--accent-color);
+}
+
+.worldbook-popup-field textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+.worldbook-popup-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+.worldbook-popup-btn {
+  padding: 8px 16px;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.worldbook-popup-btn.primary {
+  background: #007AFF;
+  color: #fff;
+}
+
+.worldbook-popup-btn.primary:hover {
+  background: #0066DD;
+}
+
+.worldbook-popup-btn.ghost {
+  background: transparent;
+  color: #666666;
+  border: 1px solid #E0E0E0;
+}
+
+.worldbook-popup-btn.ghost:hover {
+  background: #F0F0F0;
+}
+
+/* 设定详情面板 */
+.worldbook-detail {
+  position: absolute;
+  inset: 0;
+  background: #FFFFFF;
+  display: flex;
+  flex-direction: column;
+  z-index: 150;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+
+.worldbook-detail.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.worldbook-detail-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-bottom: 1px solid #E0E0E0;
+  background: #FAFAFA;
+}
+
+.worldbook-detail-back {
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: transparent;
+  font-size: 24px;
+  color: #1a1a1a;
+  cursor: pointer;
+}
+
+.worldbook-detail-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1a1a1a;
+  flex: 1;
+  text-align: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.worldbook-detail-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.worldbook-detail-btn {
+  padding: 6px 12px;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.worldbook-detail-btn.save {
+  background: #007AFF;
+  color: #fff;
+}
+
+.worldbook-detail-btn.save:hover {
+  background: #0066DD;
+}
+
+.worldbook-detail-btn.delete {
+  background: transparent;
+  color: #FF3B30;
+  border: 1px solid #FF3B30;
+}
+
+.worldbook-detail-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+  background: #FFFFFF;
+}
+
+.worldbook-detail-field {
+  margin-bottom: 16px;
+}
+
+.worldbook-detail-field label {
+  display: block;
+  font-size: 13px;
+  color: #666666;
+  margin-bottom: 6px;
+}
+
+.worldbook-detail-field input,
+.worldbook-detail-field textarea,
+.worldbook-detail-field select {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #E0E0E0;
+  border-radius: var(--radius-sm);
+  background: #F8F8F8;
+  color: #1a1a1a;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.15s ease;
+}
+
+.worldbook-detail-field input:focus,
+.worldbook-detail-field textarea:focus,
+.worldbook-detail-field select:focus {
+  border-color: var(--accent-color);
+}
+
+.worldbook-detail-field textarea {
+  resize: vertical;
+  min-height: 120px;
+}
+
+/* 文件上传提示 */
+.worldbook-upload-hint {
+  font-size: 12px;
+  color: #666666;
+  margin-top: 4px;
+}
+
+/* 隐藏的文件输入 */
+.worldbook-file-input {
+  display: none;
+}
+
+/* 开关字段样式 */
+.worldbook-detail-switch {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 0;
+  border-top: 1px solid #E0E0E0;
+  margin-top: 8px;
+}
+
+.worldbook-detail-switch label:first-child {
+  margin-bottom: 0;
+  font-size: 14px;
+  font-weight: 500;
+  color: #1a1a1a;
+}
+
+/* ========== 分组详情面板 ========== */
+.worldbook-group-detail {
+  position: absolute;
+  inset: 0;
+  background: #FFFFFF;
+  display: flex;
+  flex-direction: column;
+  z-index: 140;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+
+.worldbook-group-detail.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.worldbook-group-detail-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-bottom: 1px solid #E0E0E0;
+  background: #FAFAFA;
+}
+
+/* 分组详情工具栏 */
+.worldbook-group-toolbar {
+  display: flex;
+  gap: 8px;
+  padding: 10px 16px;
+  border-bottom: 1px solid #E0E0E0;
+  background: #F5F5F5;
+}
+
+.worldbook-group-toolbar-btn {
+  padding: 6px 12px;
+  background: #FFFFFF;
+  border: 1px solid #E0E0E0;
+  border-radius: var(--radius-sm);
+  color: #1a1a1a;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.worldbook-group-toolbar-btn:hover {
+  background: #F0F0F0;
+}
+
+.worldbook-group-toolbar-btn.active {
+  background: var(--accent-color);
+  border-color: var(--accent-color);
+  color: #FFFFFF;
+}
+
+.worldbook-group-toolbar-btn.delete {
+  color: #FF3B30;
+  border-color: #FF3B30;
+}
+
+.worldbook-group-toolbar-btn.delete:hover:not(:disabled) {
+  background: #FF3B30;
+  color: #FFFFFF;
+}
+
+.worldbook-group-toolbar-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.worldbook-group-toolbar-select {
+  flex: 1;
+  padding: 6px 10px;
+  background: #FFFFFF;
+  border: 1px solid #E0E0E0;
+  border-radius: var(--radius-sm);
+  color: #1a1a1a;
+  font-size: 12px;
+  outline: none;
+}
+
+.worldbook-group-toolbar-select:focus {
+  border-color: var(--accent-color);
+}
+
+/* 分组详情底栏 */
+.worldbook-group-footer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 16px;
+  border-top: 1px solid #E0E0E0;
+  background: #FAFAFA;
+}
+
+.worldbook-group-footer.is-hidden {
+  display: none;
+}
+
+.worldbook-group-footer-count {
+  font-size: 13px;
+  color: #666666;
+}
+
+.worldbook-group-detail-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+  background: #FFFFFF;
+}
+
+/* 重命名按钮样式 */
+.worldbook-detail-btn.rename {
+  background: transparent;
+  color: var(--accent-color);
+  border: 1px solid var(--accent-color);
+}
+
+.worldbook-detail-btn.rename:hover {
+  background: var(--accent-color);
+  color: #FFFFFF;
+}
+
+/* 分组详情中的设定项 - 可选择模式 */
+.worldbook-group-entry-item.selectable {
+  padding-left: 12px;
+}
+
+.worldbook-group-entry-item .worldbook-entry-checkbox {
+  width: 20px;
+  height: 20px;
+  border: 2px solid #CCCCCC;
+  border-radius: 4px;
+  margin-right: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.15s ease;
+}
+
+.worldbook-group-entry-item.selected .worldbook-entry-checkbox {
+  background: var(--accent-color);
+  border-color: var(--accent-color);
+}
+
+.worldbook-entry-checkbox::after {
+  content: "✓";
+  color: #fff;
+  font-size: 12px;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.worldbook-group-entry-item.selected .worldbook-entry-checkbox::after {
+  opacity: 1;
+}
+
+.worldbook-group-entry-item.selected {
+  background: rgba(0, 122, 255, 0.1);
+  border-color: var(--accent-color);
+}
+
+/* 分组详情操作栏 */
+.worldbook-group-detail-actions {
+  display: flex;
+  gap: 8px;
+  padding: 12px 16px;
+  border-top: 1px solid #E0E0E0;
+  background: #FAFAFA;
+}
+
+.worldbook-group-detail-actions .worldbook-detail-btn {
+  flex: 1;
+}
+
+.worldbook-group-detail-list {
+  display: flex;
+  flex-direction: column;
+  flex-wrap: nowrap;
+  gap: 8px;
+  width: 100%;
+}
+
+/* 分组详情中的设定项 */
+.worldbook-group-entry-item {
+  display: flex;
+  align-items: center;
+  padding: 12px 16px;
+  background: #F8F8F8;
+  border: 1px solid #E0E0E0;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  width: 100%;
+  flex-shrink: 0;
+  box-sizing: border-box;
+}
+
+.worldbook-group-entry-item:hover {
+  background: #F0F0F0;
+  border-color: var(--accent-color);
+}
+
+.worldbook-group-entry-item::before {
+  content: "";
+  width: 4px;
+  height: 24px;
+  background: var(--accent-color);
+  border-radius: 2px;
+  margin-right: 12px;
+  flex-shrink: 0;
+}
+
+/* 不同颜色的标签 */
+.worldbook-group-entry-item:nth-child(5n+1)::before { background: #FF6B6B; }
+.worldbook-group-entry-item:nth-child(5n+2)::before { background: #4ECDC4; }
+.worldbook-group-entry-item:nth-child(5n+3)::before { background: #FFE66D; }
+.worldbook-group-entry-item:nth-child(5n+4)::before { background: #95E1D3; }
+.worldbook-group-entry-item:nth-child(5n+5)::before { background: #DDA0DD; }
+
+.worldbook-group-entry-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.worldbook-group-entry-name {
+  font-size: 14px;
+  font-weight: 500;
+  color: #1a1a1a;
+  margin-bottom: 4px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.worldbook-group-entry-preview {
+  font-size: 12px;
+  color: #666666;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.worldbook-group-entry-arrow {
+  color: #999999;
+  font-size: 18px;
+  margin-left: 8px;
+}
+
+/* 分组详情空状态 */
+.worldbook-group-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  color: #666666;
+  text-align: center;
+}
+
+.worldbook-group-empty-icon {
+  font-size: 48px;
+  margin-bottom: 12px;
+  opacity: 0.5;
+}
+
+.worldbook-group-empty-text {
+  font-size: 14px;
+}
+
+/* ========== 导入弹窗 ========== */
+.worldbook-import-popup .worldbook-popup-card {
+  max-width: 360px;
+}
+
+.worldbook-import-info {
+  padding: 12px;
+  background: #E8F4FD;
+  border: 1px solid #B8DAEF;
+  border-radius: var(--radius-sm);
+  margin-bottom: 16px;
+}
+
+.worldbook-import-info-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin-bottom: 4px;
+}
+
+.worldbook-import-info-count {
+  font-size: 13px;
+  color: #666666;
+}
+
+/* ========== 批量处理面板 ========== */
+.worldbook-batch-panel {
+  position: absolute;
+  inset: 0;
+  background: #FFFFFF;
+  display: flex;
+  flex-direction: column;
+  z-index: 145;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+
+.worldbook-batch-panel.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.worldbook-batch-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-bottom: 1px solid #E0E0E0;
+  background: #FAFAFA;
+}
+
+.worldbook-batch-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1a1a1a;
+  flex: 1;
+  text-align: center;
+}
+
+.worldbook-batch-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+  background: #FFFFFF;
+}
+
+/* 批量操作工具栏 */
+.worldbook-batch-toolbar {
+  display: flex;
+  gap: 8px;
+  padding: 12px 16px;
+  border-bottom: 1px solid #E0E0E0;
+  background: #F5F5F5;
+}
+
+.worldbook-batch-select-all {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: #FFFFFF;
+  border: 1px solid #E0E0E0;
+  border-radius: var(--radius-sm);
+  color: #1a1a1a;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.worldbook-batch-select-all:hover {
+  background: #F0F0F0;
+}
+
+.worldbook-batch-select-all.active {
+  background: var(--accent-color);
+  border-color: var(--accent-color);
+  color: #FFFFFF;
+}
+
+.worldbook-batch-group-select {
+  flex: 1;
+  padding: 8px 12px;
+  background: #FFFFFF;
+  border: 1px solid #E0E0E0;
+  border-radius: var(--radius-sm);
+  color: #1a1a1a;
+  font-size: 13px;
+  outline: none;
+}
+
+.worldbook-batch-group-select:focus {
+  border-color: var(--accent-color);
+}
+
+/* 批量操作底部栏 */
+.worldbook-batch-footer {
+  display: flex;
+  gap: 8px;
+  padding: 12px 16px;
+  border-top: 1px solid #E0E0E0;
+  background: #FAFAFA;
+}
+
+.worldbook-batch-footer .worldbook-detail-btn {
+  flex: 1;
+}
+
+.worldbook-batch-count {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 16px;
+  font-size: 13px;
+  color: #666666;
+}
+
+/* 批量列表项 */
+.worldbook-batch-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.worldbook-batch-item {
+  display: flex;
+  align-items: center;
+  padding: 12px 16px;
+  background: #F8F8F8;
+  border: 1px solid #E0E0E0;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.worldbook-batch-item:hover {
+  background: #F0F0F0;
+}
+
+.worldbook-batch-item.selected {
+  background: rgba(0, 122, 255, 0.1);
+  border-color: var(--accent-color);
+}
+
+.worldbook-batch-checkbox {
+  width: 20px;
+  height: 20px;
+  border: 2px solid #CCCCCC;
+  border-radius: 4px;
+  margin-right: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.15s ease;
+}
+
+.worldbook-batch-item.selected .worldbook-batch-checkbox {
+  background: var(--accent-color);
+  border-color: var(--accent-color);
+}
+
+.worldbook-batch-checkbox::after {
+  content: "✓";
+  color: #fff;
+  font-size: 12px;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.worldbook-batch-item.selected .worldbook-batch-checkbox::after {
+  opacity: 1;
+}
+
+.worldbook-batch-item-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.worldbook-batch-item-name {
+  font-size: 14px;
+  font-weight: 500;
+  color: #1a1a1a;
+  margin-bottom: 4px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.worldbook-batch-item-preview {
+  font-size: 12px;
+  color: #666666;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 批量空状态 */
+.worldbook-batch-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  color: #666666;
+  text-align: center;
+}
+
+.worldbook-batch-empty-icon {
+  font-size: 48px;
+  margin-bottom: 12px;
+  opacity: 0.5;
+}
+
+.worldbook-batch-empty-text {
+  font-size: 14px;
+}
+
+/* 未分组提示按钮 */
+.worldbook-ungrouped-hint {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  margin-bottom: 16px;
+  background: rgba(255, 149, 0, 0.15);
+  border: 1px solid rgba(255, 149, 0, 0.3);
+  border-radius: var(--radius-md);
+  color: #FF9500;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.worldbook-ungrouped-hint:hover {
+  background: rgba(255, 149, 0, 0.25);
+}
+
+.worldbook-ungrouped-hint.is-hidden {
+  display: none;
+}
+
+.worldbook-ungrouped-hint-icon {
+  font-size: 18px;
+}
+
+.worldbook-ungrouped-hint-text {
+  flex: 1;
+}
+
+.worldbook-ungrouped-hint-arrow {
+  font-size: 16px;
+  opacity: 0.7;
+}

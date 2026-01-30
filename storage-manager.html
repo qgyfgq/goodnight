@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>存储空间管理</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 2rem;
+    }
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 1.5rem;
+      padding: 2rem;
+      box-shadow: 0 1rem 3rem rgba(0, 0, 0, 0.2);
+    }
+    h1 {
+      font-size: 1.5rem;
+      color: #333;
+      margin-bottom: 1.5rem;
+      text-align: center;
+    }
+    .storage-info {
+      background: #f8f9fa;
+      border-radius: 1rem;
+      padding: 1rem;
+      margin-bottom: 1.5rem;
+    }
+    .storage-bar {
+      height: 1rem;
+      background: #e9ecef;
+      border-radius: 0.5rem;
+      overflow: hidden;
+      margin-bottom: 0.5rem;
+    }
+    .storage-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #28a745, #ffc107, #dc3545);
+      transition: width 0.3s ease;
+    }
+    .storage-text {
+      font-size: 0.9rem;
+      color: #666;
+      text-align: center;
+    }
+    .item-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      margin-bottom: 1.5rem;
+    }
+    .item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.75rem 1rem;
+      background: #fff;
+      border: 1px solid #e9ecef;
+      border-radius: 0.75rem;
+    }
+    .item-info {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+    }
+    .item-name {
+      font-weight: 600;
+      color: #333;
+    }
+    .item-size {
+      font-size: 0.8rem;
+      color: #888;
+    }
+    .item-btn {
+      padding: 0.4rem 0.8rem;
+      font-size: 0.85rem;
+      border: none;
+      border-radius: 0.5rem;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .item-btn.delete {
+      background: #fee2e2;
+      color: #dc2626;
+    }
+    .item-btn.delete:hover {
+      background: #fecaca;
+    }
+    .actions {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+    .btn {
+      padding: 0.75rem 1.5rem;
+      font-size: 1rem;
+      border: none;
+      border-radius: 0.75rem;
+      cursor: pointer;
+      font-weight: 500;
+      transition: all 0.15s ease;
+    }
+    .btn.primary {
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: #fff;
+    }
+    .btn.primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 0.5rem 1rem rgba(102, 126, 234, 0.3);
+    }
+    .btn.danger {
+      background: #dc3545;
+      color: #fff;
+    }
+    .btn.danger:hover {
+      background: #c82333;
+    }
+    .btn.secondary {
+      background: #6c757d;
+      color: #fff;
+    }
+    .btn.secondary:hover {
+      background: #5a6268;
+    }
+    .warning {
+      background: #fff3cd;
+      border: 1px solid #ffc107;
+      border-radius: 0.75rem;
+      padding: 1rem;
+      margin-bottom: 1.5rem;
+      font-size: 0.9rem;
+      color: #856404;
+    }
+    .success {
+      background: #d4edda;
+      border: 1px solid #28a745;
+      border-radius: 0.75rem;
+      padding: 1rem;
+      margin-bottom: 1.5rem;
+      font-size: 0.9rem;
+      color: #155724;
+      display: none;
+    }
+    .tip {
+      margin-top: 1.5rem;
+      padding: 1rem;
+      background: #e7f3ff;
+      border-radius: 0.75rem;
+      font-size: 0.85rem;
+      color: #0066cc;
+    }
+    .tip h3 {
+      font-size: 0.9rem;
+      margin-bottom: 0.5rem;
+    }
+    .tip ul {
+      margin-left: 1.2rem;
+    }
+    .tip li {
+      margin-bottom: 0.3rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>📦 存储空间管理</h1>
+    
+    <div class="storage-info">
+      <div class="storage-bar">
+        <div class="storage-bar-fill" id="storageBarFill" style="width: 0%"></div>
+      </div>
+      <div class="storage-text" id="storageText">计算中...</div>
+    </div>
+
+    <div class="success" id="successMsg">操作成功！</div>
+
+    <div class="item-list" id="itemList"></div>
+
+    <div class="warning">
+      ⚠️ 删除数据后无法恢复，请谨慎操作！
+    </div>
+
+    <div class="actions">
+      <button class="btn primary" onclick="refreshStorage()">🔄 刷新存储信息</button>
+      <button class="btn danger" onclick="clearAllStorage()">🗑️ 清空所有数据</button>
+      <button class="btn secondary" onclick="window.location.href='index.html'">← 返回主页</button>
+    </div>
+
+    <div class="tip">
+      <h3>💡 节省存储空间的建议：</h3>
+      <ul>
+        <li>使用图片链接（URL）代替上传图片</li>
+        <li>定期清理不需要的聊天记录</li>
+        <li>删除不再使用的联系人</li>
+        <li>清理旧的动态数据</li>
+      </ul>
+    </div>
+  </div>
+
+  <script>
+    // 存储项配置
+    const storageItems = [
+      { key: 'xinliaoContacts', name: '联系人数据', icon: '👥' },
+      { key: 'xinliaoChats', name: '会话列表', icon: '💬' },
+      { key: 'xinliaoMoments', name: '动态数据', icon: '📷' },
+      { key: 'xinliaoCover', name: '动态封面图', icon: '🖼️' },
+      { key: 'xinliaoUserAvatar', name: '用户头像', icon: '👤' },
+      { key: 'xinliaoUserName', name: '用户昵称', icon: '📝' },
+      { key: 'apiProfiles', name: 'API 配置', icon: '⚙️' },
+      { key: 'activeProfileId', name: '当前配置 ID', icon: '🔑' },
+    ];
+
+    // 格式化字节大小
+    function formatBytes(bytes) {
+      if (bytes === 0) return '0 B';
+      const k = 1024;
+      const sizes = ['B', 'KB', 'MB', 'GB'];
+      const i = Math.floor(Math.log(bytes) / Math.log(k));
+      return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+
+    // 获取存储项大小
+    function getItemSize(key) {
+      const value = localStorage.getItem(key);
+      if (!value) return 0;
+      return new Blob([value]).size;
+    }
+
+    // 获取总存储大小
+    function getTotalSize() {
+      let total = 0;
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        total += getItemSize(key);
+      }
+      return total;
+    }
+
+    // 获取聊天记录的存储项
+    function getChatMessageKeys() {
+      const keys = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith('xinliaoChatMessages_')) {
+          keys.push(key);
+        }
+      }
+      return keys;
+    }
+
+    // 刷新存储信息
+    function refreshStorage() {
+      const totalSize = getTotalSize();
+      const maxSize = 5 * 1024 * 1024; // 假设 5MB 限制
+      const percentage = Math.min((totalSize / maxSize) * 100, 100);
+
+      document.getElementById('storageBarFill').style.width = percentage + '%';
+      document.getElementById('storageText').textContent = 
+        `已使用 ${formatBytes(totalSize)} / 约 ${formatBytes(maxSize)} (${percentage.toFixed(1)}%)`;
+
+      // 渲染存储项列表
+      const itemList = document.getElementById('itemList');
+      let html = '';
+
+      // 添加预定义的存储项
+      for (const item of storageItems) {
+        const size = getItemSize(item.key);
+        if (size > 0) {
+          html += `
+            <div class="item">
+              <div class="item-info">
+                <span class="item-name">${item.icon} ${item.name}</span>
+                <span class="item-size">${formatBytes(size)}</span>
+              </div>
+              <button class="item-btn delete" onclick="deleteItem('${item.key}')">删除</button>
+            </div>
+          `;
+        }
+      }
+
+      // 添加聊天记录
+      const chatKeys = getChatMessageKeys();
+      if (chatKeys.length > 0) {
+        let chatTotalSize = 0;
+        chatKeys.forEach(key => {
+          chatTotalSize += getItemSize(key);
+        });
+        html += `
+          <div class="item">
+            <div class="item-info">
+              <span class="item-name">💭 聊天记录 (${chatKeys.length} 个会话)</span>
+              <span class="item-size">${formatBytes(chatTotalSize)}</span>
+            </div>
+            <button class="item-btn delete" onclick="deleteChatMessages()">删除全部</button>
+          </div>
+        `;
+      }
+
+      if (!html) {
+        html = '<div class="item"><div class="item-info"><span class="item-name">暂无存储数据</span></div></div>';
+      }
+
+      itemList.innerHTML = html;
+    }
+
+    // 删除单个存储项
+    function deleteItem(key) {
+      if (confirm(`确定要删除 "${key}" 吗？`)) {
+        localStorage.removeItem(key);
+        showSuccess();
+        refreshStorage();
+      }
+    }
+
+    // 删除所有聊天记录
+    function deleteChatMessages() {
+      if (confirm('确定要删除所有聊天记录吗？')) {
+        const chatKeys = getChatMessageKeys();
+        chatKeys.forEach(key => {
+          localStorage.removeItem(key);
+        });
+        showSuccess();
+        refreshStorage();
+      }
+    }
+
+    // 清空所有存储
+    function clearAllStorage() {
+      if (confirm('⚠️ 确定要清空所有数据吗？此操作不可恢复！')) {
+        if (confirm('再次确认：这将删除所有联系人、聊天记录、动态等数据！')) {
+          localStorage.clear();
+          showSuccess();
+          refreshStorage();
+        }
+      }
+    }
+
+    // 显示成功消息
+    function showSuccess() {
+      const msg = document.getElementById('successMsg');
+      msg.style.display = 'block';
+      setTimeout(() => {
+        msg.style.display = 'none';
+      }, 2000);
+    }
+
+    // 页面加载时刷新
+    refreshStorage();
+  </script>
+</body>
+</html>

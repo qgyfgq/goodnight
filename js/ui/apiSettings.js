@@ -1,5 +1,6 @@
 const DEFAULT_TIMEOUT = 8000;
 const STORAGE_KEY = "apiProfiles";
+const ACTIVE_PROFILE_KEY = "apiActiveProfile";
 
 const setStatus = (el, text, variant = "neutral") => {
   el.textContent = text;
@@ -57,12 +58,16 @@ export const initApiSettings = () => {
   const fetchBtn = document.getElementById("btnFetchModels");
   const testBtn = document.getElementById("btnTest");
   const saveBtn = document.getElementById("btnSave");
-  const profileList = document.getElementById("profileList");
   const testStatus = document.getElementById("testStatus");
   const savePopup = document.getElementById("savePopup");
   const saveNameInput = document.getElementById("saveNameInput");
   const saveCancelBtn = document.getElementById("btnSaveCancel");
   const saveConfirmBtn = document.getElementById("btnSaveConfirm");
+  
+  // 新增的配置选择器元素
+  const profileSelect = document.getElementById("profileSelect");
+  const applyProfileBtn = document.getElementById("btnApplyProfile");
+  const deleteProfileBtn = document.getElementById("btnDeleteProfile");
 
   if (
     !urlInput ||
@@ -71,12 +76,14 @@ export const initApiSettings = () => {
     !fetchBtn ||
     !testBtn ||
     !saveBtn ||
-    !profileList ||
     !testStatus ||
     !savePopup ||
     !saveNameInput ||
     !saveCancelBtn ||
-    !saveConfirmBtn
+    !saveConfirmBtn ||
+    !profileSelect ||
+    !applyProfileBtn ||
+    !deleteProfileBtn
   )
     return;
 
@@ -97,7 +104,6 @@ export const initApiSettings = () => {
         e.preventDefault();
         changeModelBy(delta);
       }
-      // 若下拉已展开，交给原生滚动处理
     },
     { passive: false }
   );
@@ -145,84 +151,18 @@ export const initApiSettings = () => {
     }
   };
 
-  const closeDropdown = () => {
-    profileList.classList.remove("open");
-    const current = profileList.querySelector(".profile-current");
-    if (current) current.setAttribute("aria-expanded", "false");
-  };
-
-  const openDropdown = () => {
-    profileList.classList.add("open");
-    const current = profileList.querySelector(".profile-current");
-    if (current) current.setAttribute("aria-expanded", "true");
-  };
-
-  const switchProfileBy = (delta) => {
-    const list = readProfiles();
-    if (!list.length) return;
-    const currentIdx = Math.max(
-      0,
-      list.findIndex((p) => p.id === currentProfileId)
-    );
-    const nextIdx = Math.min(
-      Math.max(currentIdx + delta, 0),
-      list.length - 1
-    );
-    const nextProfile = list[nextIdx];
-    currentProfileId = nextProfile.id;
-    applyProfile(nextProfile);
-    renderProfiles(list, currentProfileId);
-  };
-
-  const renderProfiles = (list, activeId = currentProfileId) => {
-    // 1. 强制父容器相对定位
-    profileList.style.position = "relative"; 
-
-    if (!list.length) {
-      profileList.classList.remove("open");
-      profileList.innerHTML = `<div class="profile-empty">暂无配置</div>`;
-      return;
-    }
-    const active = list.find((p) => p.id === activeId) || list[0];
-    currentProfileId = active.id;
-
-    const dropdown = list
-      .map(
-        (p) => `<button class="profile-item${p.id === active.id ? " active" : ""}" data-id="${p.id}" role="option">
-            <span class="profile-name">${p.name || "未命名"}</span>
-            <span class="profile-desc">${p.model || "未选模型"}</span>
-          </button>`
-      )
-      .join("");
-
-    const expanded = profileList.classList.contains("open") ? "true" : "false";
-
-    // 修正样式：确保下拉菜单可以滚动
-    profileList.innerHTML = `
-      <div class="profile-current" tabindex="0" role="button" aria-expanded="${expanded}">
-        <div class="text">
-          <span class="profile-name">${active.name || "未命名"}</span>
-          <span class="profile-desc">${active.model || "未选模型"}</span>
-        </div>
-        <span class="caret">▾</span>
-      </div>
-      <div class="profile-dropdown" role="listbox" style="
-          position: absolute; 
-          top: 100%; 
-          left: 0; 
-          right: 0;
-          z-index: 10000; 
-          background: var(--bg-color, #fff); 
-          border: 1px solid #ccc;
-          max-height: 250px; 
-          overflow-y: auto; 
-          overscroll-behavior: contain;
-          -webkit-overflow-scrolling: touch;
-          box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-      ">
-        ${dropdown}
-      </div>
-    `;
+  // 渲染配置下拉选择器
+  const renderProfileSelect = (list, activeId = currentProfileId) => {
+    profileSelect.innerHTML = `<option value="">-- 选择配置 --</option>`;
+    list.forEach((p) => {
+      const opt = document.createElement("option");
+      opt.value = p.id;
+      opt.textContent = `${p.name} (${p.model || "未选模型"})`;
+      if (p.id === activeId) {
+        opt.selected = true;
+      }
+      profileSelect.appendChild(opt);
+    });
   };
 
   const applyProfile = (profile, silent = false) => {
@@ -233,18 +173,59 @@ export const initApiSettings = () => {
       ensureModelOption(profile.model);
       modelSelect.value = profile.model;
     }
+    currentProfileId = profile.id;
+    // 保存活动配置ID到localStorage
+    localStorage.setItem(ACTIVE_PROFILE_KEY, profile.id);
+    // 同步更新配置选择器的选中状态
+    profileSelect.value = profile.id;
     if (!silent) {
-      setStatus(testStatus, `已切换到配置：${profile.name || ""}`, "success");
+      setStatus(testStatus, `已应用配置：${profile.name || ""}`, "success");
     }
   };
 
+  // 当模型选择变化时，自动更新当前配置
+  const updateCurrentProfileModel = () => {
+    if (!currentProfileId) return;
+    
+    const model = modelSelect.value;
+    if (!model) return;
+    
+    const list = readProfiles();
+    const profileIndex = list.findIndex((p) => p.id === currentProfileId);
+    if (profileIndex === -1) return;
+    
+    // 更新配置中的模型
+    list[profileIndex].model = model;
+    writeProfiles(list);
+    
+    // 更新下拉选择器中的显示文本
+    renderProfileSelect(list, currentProfileId);
+  };
+
+  // 监听模型选择变化
+  modelSelect.addEventListener("change", () => {
+    updateCurrentProfileModel();
+  });
+
   const bootstrapProfiles = () => {
     const list = readProfiles();
-    if (list.length) {
-      currentProfileId = list[0].id;
-      applyProfile(list[0], true);
+    // 读取保存的活动配置ID
+    const savedActiveId = localStorage.getItem(ACTIVE_PROFILE_KEY);
+    let activeProfile = null;
+    
+    if (savedActiveId) {
+      activeProfile = list.find((p) => p.id === savedActiveId);
     }
-    renderProfiles(list, currentProfileId);
+    // 如果没有保存的或找不到，使用第一个
+    if (!activeProfile && list.length) {
+      activeProfile = list[0];
+    }
+    
+    if (activeProfile) {
+      currentProfileId = activeProfile.id;
+      applyProfile(activeProfile, true);
+    }
+    renderProfileSelect(list, currentProfileId);
   };
 
   const requireUrlKey = () => {
@@ -274,7 +255,7 @@ export const initApiSettings = () => {
     }
   };
 
-  // 拉取模型列表（真实 OpenAI 兼容模式）
+  // 拉取模型列表
   fetchBtn.addEventListener("click", async () => {
     const required = requireUrlKey();
     if (!required) return;
@@ -316,7 +297,7 @@ export const initApiSettings = () => {
     }
   });
 
-  // 测试连接（真实探活：对选中模型发起最小 chat/completions）
+  // 测试连接
   testBtn.addEventListener("click", async () => {
     const required = requireUrlKey();
     if (!required) return;
@@ -373,6 +354,54 @@ export const initApiSettings = () => {
     }
   });
 
+  // 应用选中的配置
+  applyProfileBtn.addEventListener("click", () => {
+    const selectedId = profileSelect.value;
+    if (!selectedId) {
+      setStatus(testStatus, "请先选择一个配置", "error");
+      return;
+    }
+    const list = readProfiles();
+    const profile = list.find((p) => p.id === selectedId);
+    if (!profile) {
+      setStatus(testStatus, "配置不存在", "error");
+      return;
+    }
+    applyProfile(profile);
+    renderProfileSelect(list, selectedId);
+  });
+
+  // 删除选中的配置
+  deleteProfileBtn.addEventListener("click", () => {
+    const selectedId = profileSelect.value;
+    if (!selectedId) {
+      setStatus(testStatus, "请先选择要删除的配置", "error");
+      return;
+    }
+    const list = readProfiles();
+    const profile = list.find((p) => p.id === selectedId);
+    if (!profile) {
+      setStatus(testStatus, "配置不存在", "error");
+      return;
+    }
+    
+    if (!confirm(`确定要删除配置"${profile.name}"吗？`)) {
+      return;
+    }
+    
+    const newList = list.filter((p) => p.id !== selectedId);
+    writeProfiles(newList);
+    
+    // 如果删除的是当前配置，清空当前配置ID和localStorage中的记录
+    if (currentProfileId === selectedId) {
+      currentProfileId = null;
+      localStorage.removeItem(ACTIVE_PROFILE_KEY);
+    }
+    
+    renderProfileSelect(newList, currentProfileId);
+    setStatus(testStatus, `已删除配置：${profile.name}`, "success");
+  });
+
   const openSavePopup = () => {
     savePopup.classList.add("active");
     savePopup.setAttribute("aria-hidden", "false");
@@ -394,7 +423,7 @@ export const initApiSettings = () => {
 
   saveCancelBtn.addEventListener("click", () => closeSavePopup());
 
-  // 确认保存配置到本地并生成可切换列表
+  // 确认保存配置
   saveConfirmBtn.addEventListener("click", () => {
     const required = requireUrlKey();
     if (!required) return;
@@ -403,6 +432,7 @@ export const initApiSettings = () => {
     const name = saveNameInput.value;
     if (!name || !name.trim()) {
       setStatus(testStatus, "已取消保存（未填写名称）", "error");
+      closeSavePopup();
       return;
     }
 
@@ -425,7 +455,7 @@ export const initApiSettings = () => {
 
     writeProfiles(nextList);
     currentProfileId = profile.id;
-    renderProfiles(nextList, currentProfileId);
+    renderProfileSelect(nextList, currentProfileId);
     setStatus(testStatus, `已保存配置：${trimmedName}`, "success");
     closeSavePopup();
   });
@@ -434,93 +464,6 @@ export const initApiSettings = () => {
   savePopup.addEventListener("click", (e) => {
     if (e.target === savePopup) closeSavePopup();
   });
-
-  // 鼠标滚轮切换配置（在标题区域滚轮，展开状态下滚动列表本身不会触发）
-  profileList.addEventListener(
-    "wheel",
-    (e) => {
-      const delta = e.deltaY > 0 ? 1 : -1;
-      const isDropdownArea = e.target.closest(".profile-dropdown");
-      // 若在可滚动的下拉区域内，允许原生滚动，不切换
-      if (profileList.classList.contains("open") && isDropdownArea) {
-        return;
-      }
-      e.preventDefault();
-      switchProfileBy(delta);
-    },
-    { passive: false }
-  );
-
-  // ==========================================
-  // 【核心修复】配置列表交互：展开/收起、选择
-  // ==========================================
-  profileList.addEventListener("click", (e) => {
-    const current = e.target.closest(".profile-current");
-    const item = e.target.closest(".profile-item");
-    const dropdown = e.target.closest(".profile-dropdown"); // 🔑 关键添加
-
-    if (item) {
-      const id = item.dataset.id;
-      const list = readProfiles();
-      const profile = list.find((p) => p.id === id);
-      if (!profile) return;
-      currentProfileId = id;
-      applyProfile(profile);
-      renderProfiles(list, currentProfileId);
-      closeDropdown();
-      return;
-    }
-
-    // 🔑 关键修复：如果点击的是下拉菜单区域（滚动条或空白处），不做任何操作
-    if (dropdown && !item) {
-      e.stopPropagation(); // 阻止事件冒泡
-      return; // 允许滚动，不关闭菜单
-    }
-
-    if (current) {
-      if (profileList.classList.contains("open")) {
-        closeDropdown();
-      } else {
-        openDropdown();
-      }
-    }
-  });
-
-  // 键盘操作：Enter/Space 展开或选择
-  profileList.addEventListener("keydown", (e) => {
-    const isEnter = e.key === "Enter";
-    const isSpace = e.key === " ";
-    if (!isEnter && !isSpace) return;
-
-    const current = e.target.closest(".profile-current");
-    const item = e.target.closest(".profile-item");
-
-    if (item) {
-      e.preventDefault();
-      item.click();
-      return;
-    }
-
-    if (current) {
-      e.preventDefault();
-      current.click();
-    }
-  });
-
-  // 点击弹窗外关闭列表
-  document.addEventListener("click", (e) => {
-    if (!profileList.contains(e.target)) {
-      closeDropdown();
-    }
-  });
-
-  // 🔑 新增：阻止下拉菜单内的触摸滚动事件冒泡
-  profileList.addEventListener("touchmove", (e) => {
-    const dropdown = e.target.closest(".profile-dropdown");
-    if (dropdown) {
-      e.stopPropagation(); // 阻止触摸滚动事件冒泡
-    }
-  }, { passive: true });
 
   bootstrapProfiles();
 };
