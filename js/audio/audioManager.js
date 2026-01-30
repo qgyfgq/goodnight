@@ -2,8 +2,64 @@ import { DEFAULT_SOUND_SOURCES, DEFAULT_SOUND_SETTINGS } from "./soundDefaults.j
 
 class AudioManager {
   constructor() {
-    this.uiAudio = new Audio();
-    this.messageAudio = new Audio();
+    // 音频池大小 - 允许快速连续播放
+    this.poolSize = 3;
+    
+    // UI音频池
+    this.uiPool = [];
+    this.uiPoolIndex = 0;
+    
+    // 消息音频池
+    this.messagePool = [];
+    this.messagePoolIndex = 0;
+    
+    // 缓存当前音频源URL
+    this.cachedUiSrc = "";
+    this.cachedMessageSrc = "";
+    
+    // 缓存设置
+    this.cachedSettings = null;
+    this.settingsVersion = 0;
+    
+    // 初始化音频池
+    this.initPools();
+  }
+
+  // 初始化音频池
+  initPools() {
+    for (let i = 0; i < this.poolSize; i++) {
+      const uiAudio = new Audio();
+      uiAudio.preload = "auto";
+      this.uiPool.push(uiAudio);
+      
+      const msgAudio = new Audio();
+      msgAudio.preload = "auto";
+      this.messagePool.push(msgAudio);
+    }
+  }
+
+  // 预加载音频文件
+  preload() {
+    const settings = this.getSavedSettings();
+    const uiSrc = this.getSourceUrl("ui", settings);
+    const msgSrc = this.getSourceUrl("message", settings);
+    
+    this.updatePoolSrc(this.uiPool, uiSrc, "ui");
+    this.updatePoolSrc(this.messagePool, msgSrc, "message");
+  }
+
+  // 更新音频池的源
+  updatePoolSrc(pool, src, type) {
+    const cachedKey = type === "ui" ? "cachedUiSrc" : "cachedMessageSrc";
+    
+    if (this[cachedKey] !== src) {
+      this[cachedKey] = src;
+      pool.forEach(audio => {
+        audio.src = src;
+        // 触发预加载
+        audio.load();
+      });
+    }
   }
 
   getSavedSettings() {
@@ -30,14 +86,29 @@ class AudioManager {
       : DEFAULT_SOUND_SOURCES.uiClick;
   }
 
-  applyAudioState(audio, target, sourceUrl) {
-    if (!target.enabled || target.volume <= 0) {
-      audio.pause();
-      return false;
+  // 从池中获取下一个可用的音频实例
+  getNextAudio(type) {
+    if (type === "message") {
+      const audio = this.messagePool[this.messagePoolIndex];
+      this.messagePoolIndex = (this.messagePoolIndex + 1) % this.poolSize;
+      return audio;
+    } else {
+      const audio = this.uiPool[this.uiPoolIndex];
+      this.uiPoolIndex = (this.uiPoolIndex + 1) % this.poolSize;
+      return audio;
     }
-    audio.src = sourceUrl;
-    audio.volume = target.volume;
-    return true;
+  }
+
+  // 刷新设置并更新音频源
+  refreshSettings() {
+    const settings = this.getSavedSettings();
+    const uiSrc = this.getSourceUrl("ui", settings);
+    const msgSrc = this.getSourceUrl("message", settings);
+    
+    this.updatePoolSrc(this.uiPool, uiSrc, "ui");
+    this.updatePoolSrc(this.messagePool, msgSrc, "message");
+    
+    this.cachedSettings = settings;
   }
 
   play(type, options = {}) {
@@ -46,15 +117,32 @@ class AudioManager {
     }
 
     const settings = this.getSavedSettings();
-    const sourceUrl = this.getSourceUrl(type, settings);
     const target = type === "message" ? settings.message : settings.ui;
-    const audio = type === "message" ? this.messageAudio : this.uiAudio;
+    
+    // 检查是否启用
+    if (!target.enabled || target.volume <= 0) {
+      return;
+    }
 
-    const canPlay = this.applyAudioState(audio, target, sourceUrl);
-    if (!canPlay) return;
+    // 检查并更新音频源
+    const sourceUrl = this.getSourceUrl(type, settings);
+    const pool = type === "message" ? this.messagePool : this.uiPool;
+    this.updatePoolSrc(pool, sourceUrl, type);
 
+    // 获取下一个可用的音频实例
+    const audio = this.getNextAudio(type);
+    
+    // 设置音量并播放
+    audio.volume = target.volume;
     audio.currentTime = 0;
-    audio.play().catch(() => {});
+    
+    // 使用 Promise 处理播放
+    const playPromise = audio.play();
+    if (playPromise !== undefined) {
+      playPromise.catch(() => {
+        // 忽略播放错误（如用户未交互）
+      });
+    }
   }
 }
 
