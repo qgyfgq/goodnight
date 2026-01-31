@@ -22,6 +22,11 @@ import {
   formatDuration as formatOnlineDuration
 } from '../music/musicApi.js';
 
+import {
+  saveSettingToIDB,
+  loadSettingFromIDB
+} from '../storage/indexedDB.js';
+
 // 状态
 let isPlaying = false;
 let currentSong = null;
@@ -379,7 +384,7 @@ function updatePlayModeButton() {
 /**
  * 打开音乐外观设置面板
  */
-function openMusicAppearanceSettings() {
+async function openMusicAppearanceSettings() {
   const musicView = document.getElementById('musicView');
   if (!musicView) return;
   
@@ -393,9 +398,15 @@ function openMusicAppearanceSettings() {
     musicView.appendChild(settingsPanel);
   }
   
-  // 获取当前设置
-  const savedBg = localStorage.getItem('musicViewBackground') || '';
-  const savedDiscImg = localStorage.getItem('musicDiscImage') || '';
+  // 从 IndexedDB 获取当前设置
+  let savedBg = '';
+  let savedDiscImg = '';
+  try {
+    savedBg = await loadSettingFromIDB('musicViewBackground', '');
+    savedDiscImg = await loadSettingFromIDB('musicDiscImage', '');
+  } catch (e) {
+    console.error('加载外观设置失败:', e);
+  }
   
   settingsPanel.innerHTML = `
     <header class="music-appearance-header">
@@ -440,11 +451,10 @@ function openMusicAppearanceSettings() {
           </div>
         </div>
       </div>
-      
-      <div class="music-appearance-actions">
-        <button class="music-appearance-btn secondary" id="musicAppearanceReset">恢复默认</button>
-        <button class="music-appearance-btn primary" id="musicAppearanceApply">应用设置</button>
-      </div>
+    </div>
+    <div class="music-appearance-actions">
+      <button class="music-appearance-btn secondary" id="musicAppearanceReset">恢复默认</button>
+      <button class="music-appearance-btn primary" id="musicAppearanceApply">应用设置</button>
     </div>
   `;
   
@@ -507,12 +517,44 @@ function updateDiscPreview(imgUrl) {
 }
 
 /**
- * 文件转 DataURL
+ * 文件转 DataURL（带压缩）
  */
-function fileToDataUrl(file) {
+function fileToDataUrl(file, maxSize = 800) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
-    reader.onload = () => resolve(reader.result);
+    reader.onload = () => {
+      const img = new Image();
+      img.onload = () => {
+        // 计算压缩后的尺寸
+        let width = img.width;
+        let height = img.height;
+        
+        if (width > maxSize || height > maxSize) {
+          if (width > height) {
+            height = Math.round(height * maxSize / width);
+            width = maxSize;
+          } else {
+            width = Math.round(width * maxSize / height);
+            height = maxSize;
+          }
+        }
+        
+        // 创建 canvas 压缩图片
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+        
+        // 转换为 JPEG 格式，质量 0.8
+        const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.8);
+        console.log('图片压缩完成，原始大小:', Math.round(reader.result.length / 1024), 'KB，压缩后:', Math.round(compressedDataUrl.length / 1024), 'KB');
+        resolve(compressedDataUrl);
+      };
+      img.onerror = reject;
+      img.src = reader.result;
+    };
     reader.onerror = reject;
     reader.readAsDataURL(file);
   });
@@ -531,13 +573,18 @@ function closeMusicAppearanceSettings() {
 /**
  * 应用音乐外观设置
  */
-function applyMusicAppearance() {
+async function applyMusicAppearance() {
   const bgUrl = document.getElementById('musicBgUrlInput').value.trim();
   const discUrl = document.getElementById('musicDiscUrlInput').value.trim();
   
-  // 保存设置
-  localStorage.setItem('musicViewBackground', bgUrl);
-  localStorage.setItem('musicDiscImage', discUrl);
+  // 保存设置到 IndexedDB
+  try {
+    await saveSettingToIDB('musicViewBackground', bgUrl);
+    await saveSettingToIDB('musicDiscImage', discUrl);
+    console.log('外观设置已保存到 IndexedDB');
+  } catch (e) {
+    console.error('保存外观设置失败:', e);
+  }
   
   // 应用背景
   applyMusicBackground(bgUrl);
@@ -590,9 +637,14 @@ function applyDiscImage(discUrl) {
 /**
  * 恢复默认外观
  */
-function resetMusicAppearance() {
-  localStorage.removeItem('musicViewBackground');
-  localStorage.removeItem('musicDiscImage');
+async function resetMusicAppearance() {
+  // 从 IndexedDB 删除设置
+  try {
+    await saveSettingToIDB('musicViewBackground', '');
+    await saveSettingToIDB('musicDiscImage', '');
+  } catch (e) {
+    console.error('删除外观设置失败:', e);
+  }
   
   document.getElementById('musicBgUrlInput').value = '';
   document.getElementById('musicDiscUrlInput').value = '';
@@ -608,12 +660,18 @@ function resetMusicAppearance() {
 /**
  * 加载保存的外观设置
  */
-function loadMusicAppearance() {
-  const bgUrl = localStorage.getItem('musicViewBackground') || '';
-  const discUrl = localStorage.getItem('musicDiscImage') || '';
-  
-  applyMusicBackground(bgUrl);
-  applyDiscImage(discUrl);
+async function loadMusicAppearance() {
+  try {
+    const bgUrl = await loadSettingFromIDB('musicViewBackground', '');
+    const discUrl = await loadSettingFromIDB('musicDiscImage', '');
+    
+    console.log('从 IndexedDB 加载外观设置:', { bgUrl: bgUrl ? '有背景' : '无', discUrl: discUrl ? '有唱片图' : '无' });
+    
+    applyMusicBackground(bgUrl);
+    applyDiscImage(discUrl);
+  } catch (e) {
+    console.error('加载外观设置失败:', e);
+  }
 }
 
 /**

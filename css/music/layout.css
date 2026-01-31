@@ -461,11 +461,14 @@
   z-index: 2;
 }
 
-/* 操作按钮 */
+/* 操作按钮 - 固定在底部 */
 .music-appearance-actions {
   display: flex;
   gap: 1em;
-  padding: 1em 0;
+  padding: 1em;
+  background: #f5f5f7;
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+  flex-shrink: 0;
 }
 
 .music-appearance-btn {
