@@ -46,17 +46,27 @@ const withTimeout = (runner, ms = DEFAULT_TIMEOUT) =>
 
 const extractJsonText = (raw) => {
   if (!raw) return "";
-  const trimmed = raw.trim();
+  let trimmed = raw.trim();
+  
+  // 移除可能的 markdown 代码块标记
+  trimmed = trimmed.replace(/^```json\s*/i, "").replace(/^```\s*/i, "");
+  trimmed = trimmed.replace(/\s*```$/i, "");
+  trimmed = trimmed.trim();
+  
+  // 尝试提取 JSON 数组
   const firstBrace = trimmed.indexOf("[");
   const lastBrace = trimmed.lastIndexOf("]");
   if (firstBrace !== -1 && lastBrace !== -1) {
     return trimmed.slice(firstBrace, lastBrace + 1);
   }
+  
+  // 尝试提取 JSON 对象
   const firstObj = trimmed.indexOf("{");
   const lastObj = trimmed.lastIndexOf("}");
   if (firstObj !== -1 && lastObj !== -1) {
     return trimmed.slice(firstObj, lastObj + 1);
   }
+  
   return trimmed;
 };
 

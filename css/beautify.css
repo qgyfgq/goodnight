@@ -1,0 +1,740 @@
+/* 美化视图样式 */
+
+/* 美化视图容器 */
+.beautify-view {
+  display: none;
+  position: absolute;
+  inset: 0;
+  padding: 1.25em 1.5em;
+  box-sizing: border-box;
+  border-radius: var(--radius-card);
+  color: var(--text-primary);
+  flex-direction: column;
+  gap: 1em;
+}
+
+.beautify-view.active {
+  display: flex;
+}
+
+/* 导航栏 */
+.beautify-nav {
+  display: flex;
+  align-items: center;
+  gap: 1em;
+  height: 3em;
+  padding: 0 0.25em;
+}
+
+.beautify-back {
+  width: 2.5em;
+  height: 2.5em;
+  border-radius: 50%;
+  border: 1px solid rgba(76, 85, 97, 0.25);
+  background: rgba(255, 255, 255, 0.75);
+  color: var(--text-primary);
+  font-size: 1.2em;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 0.625em 1.25em rgba(15, 23, 42, 0.12);
+}
+
+.beautify-back:hover {
+  background: rgba(255, 255, 255, 0.9);
+  border-color: rgba(76, 85, 97, 0.45);
+}
+
+.beautify-back:active {
+  transform: scale(0.96);
+}
+
+.beautify-title {
+  font-size: 1.1em;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--text-primary);
+}
+
+/* 子视图容器 */
+.beautify-section {
+  flex: 1;
+  display: none;
+  flex-direction: column;
+  gap: 1em;
+  overflow-y: auto;
+}
+
+.beautify-section.active {
+  display: flex;
+}
+
+.beautify-section.transition-in {
+  animation: fadeIn 0.25s ease;
+}
+
+/* 列表 */
+.beautify-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75em;
+  margin-top: 0.25em;
+  width: 100%;
+}
+
+.beautify-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75em;
+  padding: 0.875em 1em;
+  width: 100%;
+  border-radius: 1em;
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  box-shadow: 0 0.75em 1.5em rgba(15, 23, 42, 0.12);
+  transition: transform 0.15s ease, box-shadow 0.2s ease;
+  cursor: pointer;
+}
+
+.beautify-item:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 1em 1.8em rgba(15, 23, 42, 0.15);
+}
+
+.beautify-text {
+  font-size: 0.95em;
+  color: var(--text-primary);
+}
+
+/* 小图标 */
+.beautify-icon {
+  width: 2.5em;
+  height: 2.5em;
+  border-radius: 0.8em;
+  display: grid;
+  place-items: center;
+  position: relative;
+  overflow: hidden;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.6);
+}
+
+.beautify-icon::after,
+.beautify-icon::before {
+  content: "";
+  position: absolute;
+  inset: 30% 22%;
+  border-radius: 0.3em;
+  opacity: 0.9;
+}
+
+/* 图标设置 */
+.icon-app-icon {
+  background: linear-gradient(135deg, #ff9a9e, #fecfef);
+}
+
+.icon-app-icon::before {
+  width: 50%;
+  height: 50%;
+  top: 25%;
+  left: 25%;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 0.5em;
+}
+
+/* 壁纸设置 */
+.icon-wallpaper {
+  background: linear-gradient(135deg, #a8edea, #fed6e3);
+}
+
+.icon-wallpaper::before {
+  width: 60%;
+  height: 70%;
+  top: 15%;
+  left: 20%;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 0.3em;
+}
+
+.icon-wallpaper::after {
+  width: 30%;
+  height: 30%;
+  bottom: 25%;
+  right: 25%;
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: 50%;
+}
+
+/* 字体设置 */
+.icon-font {
+  background: linear-gradient(135deg, #d299c2, #fef9d7);
+}
+
+.icon-font::before {
+  width: 50%;
+  height: 60%;
+  top: 20%;
+  left: 25%;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 0.2em;
+}
+
+/* 气泡设置 */
+.icon-bubble {
+  background: linear-gradient(135deg, #89f7fe, #66a6ff);
+}
+
+.icon-bubble::before {
+  width: 55%;
+  height: 45%;
+  top: 22%;
+  left: 22%;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 1em 1em 0.2em 1em;
+}
+
+/* 全局美化 */
+.icon-global {
+  background: linear-gradient(135deg, #f093fb, #f5576c);
+}
+
+.icon-global::before {
+  width: 50%;
+  height: 50%;
+  top: 25%;
+  left: 25%;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 50%;
+}
+
+/* 详情卡片 */
+.beautify-card {
+  background: rgba(255, 255, 255, 0.78);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  border-radius: 1.25em;
+  padding: 1.1em 1.2em;
+  box-shadow: 0 0.75em 1.5em rgba(15, 23, 42, 0.12);
+  display: flex;
+  flex-direction: column;
+  gap: 0.9em;
+}
+
+.beautify-subtitle {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: #1f1f1f;
+}
+
+/* 预览区域 */
+.beautify-preview {
+  width: 100%;
+  height: 8em;
+  border-radius: 1em;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  position: relative;
+}
+
+.beautify-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.beautify-preview-placeholder {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.9em;
+}
+
+/* 颜色选择器 */
+.beautify-color-row {
+  display: flex;
+  gap: 0.5em;
+  flex-wrap: wrap;
+}
+
+.beautify-color-item {
+  width: 2.5em;
+  height: 2.5em;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  box-shadow: 0 0.3em 0.6em rgba(0, 0, 0, 0.15);
+}
+
+.beautify-color-item:hover {
+  transform: scale(1.1);
+}
+
+.beautify-color-item.active {
+  border-color: #fff;
+  box-shadow: 0 0 0 2px #5b7bff, 0 0.3em 0.6em rgba(0, 0, 0, 0.2);
+}
+
+/* 滑块样式 */
+.beautify-slider-row {
+  display: flex;
+  align-items: center;
+  gap: 0.8em;
+}
+
+.beautify-slider-row input[type="range"] {
+  flex: 1;
+}
+
+.beautify-slider-value {
+  min-width: 3em;
+  text-align: right;
+  font-size: 0.85em;
+  color: var(--text-secondary);
+}
+
+/* 选项组 */
+.beautify-option-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5em;
+}
+
+.beautify-option-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.6em 0.8em;
+  background: rgba(255, 255, 255, 0.6);
+  border-radius: 0.8em;
+  border: 1px solid rgba(76, 85, 97, 0.1);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.beautify-option-item:hover {
+  background: rgba(255, 255, 255, 0.8);
+}
+
+.beautify-option-item.active {
+  background: linear-gradient(135deg, rgba(125, 166, 255, 0.2), rgba(91, 123, 255, 0.2));
+  border-color: rgba(91, 123, 255, 0.3);
+}
+
+.beautify-option-label {
+  font-size: 0.9em;
+  color: var(--text-primary);
+}
+
+.beautify-option-check {
+  width: 1.2em;
+  height: 1.2em;
+  border-radius: 50%;
+  border: 2px solid rgba(76, 85, 97, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+}
+
+.beautify-option-item.active .beautify-option-check {
+  background: linear-gradient(135deg, #7da6ff, #5b7bff);
+  border-color: transparent;
+}
+
+.beautify-option-item.active .beautify-option-check::after {
+  content: "✓";
+  color: #fff;
+  font-size: 0.7em;
+  font-weight: bold;
+}
+
+/* 图片上传区域 */
+.beautify-upload {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5em;
+}
+
+.beautify-upload-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5em;
+  padding: 0.8em 1em;
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px dashed rgba(76, 85, 97, 0.3);
+  border-radius: 0.8em;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-size: 0.9em;
+  color: var(--text-secondary);
+}
+
+.beautify-upload-btn:hover {
+  background: rgba(255, 255, 255, 0.95);
+  border-color: rgba(76, 85, 97, 0.5);
+}
+
+.beautify-upload-input {
+  display: none;
+}
+
+/* 提示文字 */
+.beautify-hint {
+  font-size: 0.8em;
+  color: var(--text-secondary);
+  padding: 0.5em 0;
+}
+
+/* 气泡预览 */
+.beautify-bubble-preview {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8em;
+  padding: 1em;
+  background: rgba(245, 245, 245, 0.5);
+  border-radius: 1em;
+}
+
+.beautify-bubble-item {
+  max-width: 70%;
+  padding: 0.6em 0.9em;
+  border-radius: 1em;
+  font-size: 0.85em;
+}
+
+.beautify-bubble-item.left {
+  align-self: flex-start;
+  background: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 1em 1em 1em 0.3em;
+}
+
+.beautify-bubble-item.right {
+  align-self: flex-end;
+  background: linear-gradient(135deg, #7da6ff, #5b7bff);
+  color: #fff;
+  border-radius: 1em 1em 0.3em 1em;
+}
+
+/* 图标预览区域 */
+.beautify-icon-preview {
+  display: flex;
+  gap: 0.8em;
+  justify-content: center;
+  padding: 1em;
+  background: rgba(245, 245, 245, 0.5);
+  border-radius: 1em;
+}
+
+.beautify-icon-preview-item {
+  width: 3.5em;
+  height: 3.5em;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  transition: border-radius 0.3s ease;
+}
+
+.beautify-icon-preview-item[data-style="rounded"] {
+  border-radius: 1em;
+}
+
+.beautify-icon-preview-item[data-style="circle"] {
+  border-radius: 50%;
+}
+
+.beautify-icon-preview-item[data-style="square"] {
+  border-radius: 0.3em;
+}
+
+.beautify-icon-preview-item[data-style="squircle"] {
+  border-radius: 35%;
+}
+
+/* 图标网格 */
+.beautify-icon-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.8em;
+  padding: 0.5em 0;
+}
+
+.beautify-icon-grid-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4em;
+  padding: 0.5em;
+  border-radius: 0.8em;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.beautify-icon-grid-item:hover {
+  background: rgba(255, 255, 255, 0.6);
+}
+
+.beautify-icon-grid-item:active {
+  transform: scale(0.95);
+}
+
+.beautify-icon-grid-item-img {
+  width: 3em;
+  height: 3em;
+  border-radius: 0.8em;
+  object-fit: cover;
+  background: rgba(200, 200, 200, 0.3);
+}
+
+.beautify-icon-grid-item-name {
+  font-size: 0.7em;
+  color: var(--text-secondary);
+  text-align: center;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 弹窗样式 */
+.beautify-popup {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.2em;
+  background: rgba(15, 23, 42, 0.4);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+  z-index: 100;
+}
+
+.beautify-popup.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.beautify-popup-card {
+  width: min(20em, calc(100% - 2.4em));
+  padding: 1.2em;
+  border-radius: 1.25em;
+  background: rgba(255, 255, 255, 0.96);
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  box-shadow: 0 1.5em 3em rgba(15, 23, 42, 0.2);
+  backdrop-filter: blur(12px);
+  display: flex;
+  flex-direction: column;
+  gap: 1em;
+}
+
+.beautify-popup-title {
+  font-size: 1.1em;
+  font-weight: 600;
+  color: var(--text-primary);
+  text-align: center;
+}
+
+.beautify-popup-icon-preview {
+  width: 5em;
+  height: 5em;
+  margin: 0 auto;
+  border-radius: 1em;
+  background: rgba(200, 200, 200, 0.3);
+  overflow: hidden;
+}
+
+.beautify-popup-icon-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.beautify-popup-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35em;
+}
+
+.beautify-popup-field label {
+  font-size: 0.85em;
+  color: var(--text-secondary);
+}
+
+.beautify-popup-field input[type="text"] {
+  width: 100%;
+  padding: 0.65em 0.8em;
+  border-radius: 0.8em;
+  border: 1px solid rgba(76, 85, 97, 0.25);
+  background: rgba(255, 255, 255, 0.9);
+  color: var(--text-primary);
+}
+
+.beautify-popup-field input[type="text"]:focus {
+  outline: 2px solid rgba(57, 118, 246, 0.35);
+  border-color: rgba(57, 118, 246, 0.4);
+}
+
+.beautify-popup-actions {
+  display: flex;
+  gap: 0.5em;
+  justify-content: flex-end;
+  margin-top: 0.5em;
+}
+
+.beautify-popup-actions .btn {
+  padding: 0.6em 1em;
+  font-size: 0.9em;
+}
+
+/* 字体设置相关样式 */
+.beautify-font-actions {
+  display: flex;
+  gap: 0.5em;
+  margin-top: 0.5em;
+}
+
+.beautify-font-actions .btn {
+  flex: 1;
+}
+
+.beautify-font-presets {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5em;
+}
+
+.beautify-font-preset-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.7em 0.9em;
+  background: rgba(255, 255, 255, 0.6);
+  border-radius: 0.8em;
+  border: 1px solid rgba(76, 85, 97, 0.1);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.beautify-font-preset-item:hover {
+  background: rgba(255, 255, 255, 0.8);
+}
+
+.beautify-font-preset-item.active {
+  background: linear-gradient(135deg, rgba(125, 166, 255, 0.2), rgba(91, 123, 255, 0.2));
+  border-color: rgba(91, 123, 255, 0.3);
+}
+
+.beautify-font-preset-name {
+  font-size: 0.9em;
+  color: var(--text-primary);
+}
+
+.beautify-font-preset-item .beautify-option-check {
+  width: 1.2em;
+  height: 1.2em;
+  border-radius: 50%;
+  border: 2px solid rgba(76, 85, 97, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+}
+
+.beautify-font-preset-item.active .beautify-option-check {
+  background: linear-gradient(135deg, #7da6ff, #5b7bff);
+  border-color: transparent;
+}
+
+.beautify-font-preset-item.active .beautify-option-check::after {
+  content: "✓";
+  color: #fff;
+  font-size: 0.7em;
+  font-weight: bold;
+}
+
+/* 长按删除提示 */
+.beautify-font-preset-item.deleting {
+  background: rgba(255, 100, 100, 0.15);
+  border-color: rgba(255, 100, 100, 0.3);
+}
+
+/* 折叠卡片样式 */
+.beautify-collapsible {
+  overflow: hidden;
+}
+
+.beautify-collapse-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  padding: 0.2em 0;
+}
+
+.beautify-collapse-header .beautify-subtitle {
+  margin: 0;
+}
+
+.beautify-collapse-arrow {
+  font-size: 1.2em;
+  color: var(--text-secondary);
+  transition: transform 0.2s ease;
+}
+
+.beautify-collapse-header.expanded .beautify-collapse-arrow {
+  transform: rotate(90deg);
+}
+
+.beautify-collapse-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8em;
+  padding-top: 0.8em;
+  margin-top: 0.5em;
+  border-top: 1px solid rgba(76, 85, 97, 0.1);
+  max-height: 12em;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.beautify-collapse-content.is-hidden {
+  display: none;
+}
+
+/* 折叠内容滚动条样式 */
+.beautify-collapse-content::-webkit-scrollbar {
+  width: 4px;
+}
+
+.beautify-collapse-content::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 2px;
+}
+
+.beautify-collapse-content::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: 2px;
+}
+
+.beautify-collapse-content::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.25);
+}
+
+/* 小屏微调 */
+@media (max-width: 26.25em) {
+  .beautify-view {
+    padding: 1em;
+  }
+
+  .beautify-item {
+    padding: 0.8em 0.9em;
+  }
+
+  .beautify-icon {
+    width: 2.3em;
+    height: 2.3em;
+  }
+}

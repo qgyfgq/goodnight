@@ -1,0 +1,494 @@
+/* 音乐视图布局 */
+.music-view {
+  position: absolute;
+  inset: 0;
+  display: none;
+  flex-direction: column;
+  background: #f5f5f7;
+  z-index: 100;
+  overflow: hidden;
+}
+
+.music-view.active {
+  display: flex;
+}
+
+/* 顶部导航 */
+.music-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1em;
+  flex-shrink: 0;
+}
+
+.music-back {
+  width: 2em;
+  height: 2em;
+  border: none;
+  background: transparent;
+  font-size: 1.5em;
+  color: var(--text-primary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.music-header-center {
+  flex: 1;
+  text-align: center;
+}
+
+.music-title {
+  font-size: 1.1em;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.music-subtitle {
+  font-size: 0.75em;
+  color: var(--text-secondary);
+  margin-top: 0.25em;
+}
+
+.music-search-btn {
+  width: 2em;
+  height: 2em;
+  border: none;
+  background: transparent;
+  font-size: 1.2em;
+  color: var(--text-primary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 主内容区 */
+.music-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 1em;
+  padding-bottom: 0;
+  overflow: hidden;
+}
+
+/* 大唱片 */
+.music-disc-large {
+  position: relative;
+  width: 12em;
+  height: 12em;
+  margin-top: 0;
+  border-radius: 50%;
+  background: #1a1a1a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: spin-slow 8s linear infinite;
+  animation-play-state: paused;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.music-disc-large.playing {
+  animation-play-state: running;
+}
+
+/* 唱片纹路 */
+.music-disc-large::before {
+  content: '';
+  position: absolute;
+  inset: 1em;
+  border-radius: 50%;
+  background: repeating-radial-gradient(
+    circle at center,
+    transparent 0,
+    transparent 0.15em,
+    rgba(80, 80, 80, 0.5) 0.15em,
+    rgba(80, 80, 80, 0.5) 0.3em
+  );
+  pointer-events: none;
+}
+
+/* 唱片反光 */
+.music-disc-large::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.08) 0%,
+    transparent 50%,
+    rgba(0, 0, 0, 0.1) 100%
+  );
+  pointer-events: none;
+}
+
+.music-disc-inner {
+  width: 4em;
+  height: 4em;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #4a4a4a 0%, #3a3a3a 50%, #2a2a2a 100%);
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2em;
+  color: rgba(255, 255, 255, 0.6);
+  overflow: hidden;
+}
+
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* 操作按钮行 */
+.music-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2em;
+  margin-top: 2em;
+  padding: 1em 0;
+}
+
+.music-action-btn {
+  width: 2.5em;
+  height: 2.5em;
+  border: none;
+  background: transparent;
+  font-size: 1.2em;
+  color: var(--text-secondary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s ease;
+}
+
+.music-action-btn:hover {
+  color: var(--text-primary);
+}
+
+/* 进度条区域 */
+.music-progress-area {
+  width: 100%;
+  padding: 1em 0;
+}
+
+.music-time-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.75em;
+  color: var(--text-secondary);
+  margin-bottom: 0.5em;
+}
+
+.music-progress-bar {
+  width: 100%;
+  height: 0.25em;
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 0.125em;
+  overflow: hidden;
+}
+
+.music-progress-fill {
+  width: 0%;
+  height: 100%;
+  background: var(--text-primary);
+  border-radius: 0.125em;
+  transition: width 0.1s linear;
+}
+
+/* 底部控制区 */
+.music-bottom {
+  flex-shrink: 0;
+  padding: 1em;
+  padding-bottom: 2em;
+  background: #f5f5f7;
+}
+
+/* 播放控制 */
+.music-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1em;
+  padding: 0.5em 0;
+  width: 100%;
+  max-width: 20em;
+  margin: 0 auto;
+}
+
+.music-ctrl-btn {
+  width: 2.5em;
+  height: 2.5em;
+  border: none;
+  background: transparent;
+  font-size: 1.2em;
+  color: #333;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s ease;
+}
+
+.music-ctrl-btn:active {
+  transform: scale(0.9);
+}
+
+.music-ctrl-btn.play-btn {
+  width: 3.5em;
+  height: 3.5em;
+  border-radius: 50%;
+  border: 2px solid #333;
+  font-size: 1em;
+}
+
+.music-ctrl-btn.small {
+  width: 2em;
+  height: 2em;
+  font-size: 1em;
+  color: #666;
+}
+
+/* 歌词容器 */
+.music-lyrics-container {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  width: 100%;
+}
+
+.music-lyrics-content {
+  text-align: center;
+  padding: 2em;
+  max-width: 100%;
+}
+
+.music-lyrics-text {
+  font-size: 1.1em;
+  line-height: 2;
+  color: var(--text-primary);
+  white-space: pre-line;
+}
+
+/* 唱片容器（用于切换显示） */
+.music-disc-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+/* ========== 外观设置面板 ========== */
+.music-appearance-panel {
+  position: absolute;
+  inset: 0;
+  background: #f5f5f7;
+  z-index: 200;
+  display: none;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.music-appearance-panel.active {
+  display: flex;
+}
+
+.music-appearance-header {
+  display: flex;
+  align-items: center;
+  padding: 1em;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  flex-shrink: 0;
+}
+
+.music-appearance-back {
+  width: 2.5em;
+  height: 2.5em;
+  border: none;
+  background: transparent;
+  color: var(--text-primary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.music-appearance-title {
+  flex: 1;
+  text-align: center;
+  font-size: 1.1em;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.music-appearance-spacer {
+  width: 2.5em;
+}
+
+.music-appearance-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1em;
+}
+
+.music-appearance-section {
+  background: white;
+  border-radius: 0.75em;
+  padding: 1em;
+  margin-bottom: 1em;
+}
+
+.music-appearance-subtitle {
+  font-size: 1em;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0 0 1em 0;
+}
+
+.music-appearance-field {
+  margin-bottom: 1em;
+}
+
+.music-appearance-field label {
+  display: block;
+  font-size: 0.85em;
+  color: var(--text-secondary);
+  margin-bottom: 0.5em;
+}
+
+.music-appearance-field input[type="text"] {
+  width: 100%;
+  padding: 0.75em;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 0.5em;
+  font-size: 0.9em;
+  background: #f5f5f7;
+  box-sizing: border-box;
+}
+
+.music-appearance-field input[type="text"]:focus {
+  outline: none;
+  border-color: #007aff;
+}
+
+.music-appearance-file {
+  width: 100%;
+  padding: 0.5em;
+  font-size: 0.85em;
+  color: var(--text-secondary);
+}
+
+/* 背景预览 */
+.music-appearance-preview {
+  width: 100%;
+  height: 8em;
+  border-radius: 0.5em;
+  background: #e5e5e5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  margin-top: 0.5em;
+}
+
+.music-appearance-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.music-appearance-preview span {
+  color: var(--text-secondary);
+  font-size: 0.9em;
+}
+
+/* 唱片预览 */
+.music-appearance-disc-preview {
+  display: flex;
+  justify-content: center;
+  padding: 1em 0;
+}
+
+.music-appearance-disc-sample {
+  width: 8em;
+  height: 8em;
+  border-radius: 50%;
+  background: #1a1a1a;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+/* 唱片中心区域（图片显示在这里） */
+.music-appearance-disc-center {
+  width: 4em;
+  height: 4em;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #4a4a4a 0%, #3a3a3a 50%, #2a2a2a 100%);
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2em;
+  color: rgba(255, 255, 255, 0.6);
+  overflow: hidden;
+}
+
+/* 预览图片显示在中心 */
+.music-appearance-disc-sample img {
+  position: absolute;
+  width: 4em;
+  height: 4em;
+  object-fit: cover;
+  border-radius: 50%;
+  z-index: 2;
+}
+
+/* 操作按钮 */
+.music-appearance-actions {
+  display: flex;
+  gap: 1em;
+  padding: 1em 0;
+}
+
+.music-appearance-btn {
+  flex: 1;
+  padding: 0.875em;
+  border: none;
+  border-radius: 0.5em;
+  font-size: 1em;
+  font-weight: 500;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+}
+
+.music-appearance-btn:active {
+  opacity: 0.7;
+}
+
+.music-appearance-btn.primary {
+  background: #007aff;
+  color: white;
+}
+
+.music-appearance-btn.secondary {
+  background: #e5e5e5;
+  color: var(--text-primary);
+}

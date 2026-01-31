@@ -1,10 +1,28 @@
 /**
  * 消息模块：数据管理
  * 管理会话列表的存储和读取
+ * 使用 IndexedDB 存储以支持更大容量
  */
 
-// 本地存储键名
-const CHATS_STORAGE_KEY = "xinliaoChats";
+import {
+  initDB,
+  saveChatsToIDB,
+  loadChatsFromIDB,
+} from "../storage/indexedDB.js";
+
+// 数据库初始化状态
+let dbReady = false;
+
+/**
+ * 确保数据库已初始化
+ * @returns {Promise<void>}
+ */
+const ensureDB = async () => {
+  if (!dbReady) {
+    await initDB();
+    dbReady = true;
+  }
+};
 
 /**
  * 生成唯一 ID
@@ -35,29 +53,28 @@ export const normalizeChat = (item = {}) => ({
  * 切换会话置顶状态
  * @param {Array} chats - 当前会话列表
  * @param {string} chatId - 会话 ID
- * @returns {Array} 更新后的会话列表
+ * @returns {Promise<Array>} 更新后的会话列表
  */
-export const toggleChatPin = (chats, chatId) => {
+export const toggleChatPin = async (chats, chatId) => {
   const updatedChats = chats.map((chat) => {
     if (chat.id === chatId) {
       return { ...chat, pinned: !chat.pinned };
     }
     return chat;
   });
-  saveChats(updatedChats);
+  await saveChats(updatedChats);
   return updatedChats;
 };
 
 /**
- * 从本地存储加载会话列表
- * @returns {Array} 会话列表
+ * 从 IndexedDB 加载会话列表
+ * @returns {Promise<Array>} 会话列表
  */
-export const loadStoredChats = () => {
+export const loadStoredChats = async () => {
   try {
-    const raw = localStorage.getItem(CHATS_STORAGE_KEY);
-    if (!raw) return [];
-    const data = JSON.parse(raw);
-    const list = Array.isArray(data) ? data : [data];
+    await ensureDB();
+    const data = await loadChatsFromIDB();
+    const list = Array.isArray(data) ? data : [];
     return list.map(normalizeChat);
   } catch (error) {
     console.warn("加载会话列表失败:", error);
@@ -66,12 +83,14 @@ export const loadStoredChats = () => {
 };
 
 /**
- * 保存会话列表到本地存储
+ * 保存会话列表到 IndexedDB
  * @param {Array} list - 会话列表
+ * @returns {Promise<void>}
  */
-export const saveChats = (list) => {
+export const saveChats = async (list) => {
   try {
-    localStorage.setItem(CHATS_STORAGE_KEY, JSON.stringify(list));
+    await ensureDB();
+    await saveChatsToIDB(list);
   } catch (error) {
     console.warn("保存会话列表失败:", error);
   }
@@ -81,12 +100,12 @@ export const saveChats = (list) => {
  * 添加新会话
  * @param {Array} chats - 当前会话列表
  * @param {Object} chatData - 新会话数据
- * @returns {Array} 更新后的会话列表
+ * @returns {Promise<Array>} 更新后的会话列表
  */
-export const addChat = (chats, chatData) => {
+export const addChat = async (chats, chatData) => {
   const newChat = normalizeChat(chatData);
   const updatedChats = [newChat, ...chats];
-  saveChats(updatedChats);
+  await saveChats(updatedChats);
   return updatedChats;
 };
 
@@ -94,11 +113,11 @@ export const addChat = (chats, chatData) => {
  * 删除会话
  * @param {Array} chats - 当前会话列表
  * @param {string} chatId - 要删除的会话 ID
- * @returns {Array} 更新后的会话列表
+ * @returns {Promise<Array>} 更新后的会话列表
  */
-export const removeChat = (chats, chatId) => {
+export const removeChat = async (chats, chatId) => {
   const updatedChats = chats.filter((chat) => chat.id !== chatId);
-  saveChats(updatedChats);
+  await saveChats(updatedChats);
   return updatedChats;
 };
 

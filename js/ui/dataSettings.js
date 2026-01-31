@@ -1,16 +1,31 @@
 /**
  * 数据管理设置模块
  * 处理存储空间显示、数据备份导入导出、清理数据等功能
+ * 支持 localStorage 和 IndexedDB
  */
 
-// 存储键名列表
+import {
+  initDB,
+  clearStore,
+  getAllItems,
+  saveChatsToIDB,
+  saveChatMessagesToIDB,
+  loadChatsFromIDB,
+  STORES,
+} from "../storage/indexedDB.js";
+
+// localStorage 存储键名列表
 const STORAGE_KEYS = {
   xinliaoContacts: "联系人数据",
   xinliaoMoments: "动态数据",
-  xinliaoMessages: "会话列表",
-  xinliaoChats: "聊天记录",
   apiProfiles: "API 配置",
   soundSettings: "提示音设置",
+};
+
+// IndexedDB 存储名称
+const IDB_STORES = {
+  chats: "会话列表",
+  chatMessages: "聊天记录",
 };
 
 // 计算字符串的字节大小
@@ -25,14 +40,54 @@ const formatSize = (bytes) => {
   return (bytes / (1024 * 1024)).toFixed(2) + " MB";
 };
 
-// 计算存储空间使用情况
-const calculateStorage = () => {
+// 计算 IndexedDB 存储空间使用情况
+const calculateIDBStorage = async () => {
   const result = {
     total: 0,
     items: [],
   };
 
-  // 遍历所有已知的存储键
+  try {
+    await initDB();
+
+    // 获取会话列表大小
+    const chats = await loadChatsFromIDB();
+    if (chats.length > 0) {
+      const chatsSize = getByteSize(JSON.stringify(chats));
+      result.total += chatsSize;
+      result.items.push({
+        key: "idb:chats",
+        label: "会话列表 (IndexedDB)",
+        size: chatsSize,
+      });
+    }
+
+    // 获取聊天消息大小
+    const chatMessages = await getAllItems(STORES.chatMessages);
+    if (chatMessages.length > 0) {
+      const messagesSize = getByteSize(JSON.stringify(chatMessages));
+      result.total += messagesSize;
+      result.items.push({
+        key: "idb:chatMessages",
+        label: "聊天记录 (IndexedDB)",
+        size: messagesSize,
+      });
+    }
+  } catch (error) {
+    console.warn("计算 IndexedDB 存储失败:", error);
+  }
+
+  return result;
+};
+
+// 计算存储空间使用情况
+const calculateStorage = async () => {
+  const result = {
+    total: 0,
+    items: [],
+  };
+
+  // 遍历所有已知的 localStorage 存储键
   for (const [key, label] of Object.entries(STORAGE_KEYS)) {
     const data = localStorage.getItem(key);
     if (data) {
@@ -42,7 +97,7 @@ const calculateStorage = () => {
     }
   }
 
-  // 检查其他未知的存储项
+  // 检查其他未知的 localStorage 存储项
   for (let i = 0; i < localStorage.length; i++) {
     const key = localStorage.key(i);
     if (!STORAGE_KEYS[key]) {
@@ -53,6 +108,11 @@ const calculateStorage = () => {
     }
   }
 
+  // 计算 IndexedDB 存储
+  const idbStorage = await calculateIDBStorage();
+  result.total += idbStorage.total;
+  result.items.push(...idbStorage.items);
+
   // 按大小排序
   result.items.sort((a, b) => b.size - a.size);
 
@@ -60,15 +120,15 @@ const calculateStorage = () => {
 };
 
 // 更新存储空间显示
-const updateStorageDisplay = () => {
+const updateStorageDisplay = async () => {
   const storageBarFill = document.getElementById("storageBarFill");
   const storageText = document.getElementById("storageText");
   const storageList = document.getElementById("storageList");
 
   if (!storageBarFill || !storageText || !storageList) return;
 
-  const storage = calculateStorage();
-  const maxStorage = 5 * 1024 * 1024; // 5MB 限制
+  const storage = await calculateStorage();
+  const maxStorage = 50 * 1024 * 1024; // IndexedDB 支持更大容量，显示 50MB
   const percentage = Math.min((storage.total / maxStorage) * 100, 100);
 
   // 更新进度条
@@ -104,19 +164,31 @@ const updateStorageDisplay = () => {
   }
 };
 
-// 导出备份
-const exportBackup = () => {
-  const backup = {};
+// 导出备份（包含 IndexedDB 数据）
+const exportBackup = async () => {
+  const backup = {
+    localStorage: {},
+    indexedDB: {},
+  };
 
   // 收集所有 localStorage 数据
   for (let i = 0; i < localStorage.length; i++) {
     const key = localStorage.key(i);
     const value = localStorage.getItem(key);
     try {
-      backup[key] = JSON.parse(value);
+      backup.localStorage[key] = JSON.parse(value);
     } catch {
-      backup[key] = value;
+      backup.localStorage[key] = value;
     }
+  }
+
+  // 收集 IndexedDB 数据
+  try {
+    await initDB();
+    backup.indexedDB.chats = await loadChatsFromIDB();
+    backup.indexedDB.chatMessages = await getAllItems(STORES.chatMessages);
+  } catch (error) {
+    console.warn("导出 IndexedDB 数据失败:", error);
   }
 
   // 创建下载
@@ -135,11 +207,11 @@ const exportBackup = () => {
   alert("备份导出成功！");
 };
 
-// 导入备份
+// 导入备份（支持新旧格式）
 const importBackup = (file) => {
   const reader = new FileReader();
 
-  reader.onload = (e) => {
+  reader.onload = async (e) => {
     try {
       const backup = JSON.parse(e.target.result);
 
@@ -153,13 +225,40 @@ const importBackup = (file) => {
         return;
       }
 
-      // 清空现有数据
-      localStorage.clear();
+      // 检测备份格式（新格式有 localStorage 和 indexedDB 字段）
+      const isNewFormat = backup.localStorage && backup.indexedDB;
 
-      // 恢复备份数据
-      for (const [key, value] of Object.entries(backup)) {
-        const strValue = typeof value === "string" ? value : JSON.stringify(value);
-        localStorage.setItem(key, strValue);
+      if (isNewFormat) {
+        // 新格式：分别恢复 localStorage 和 IndexedDB
+        localStorage.clear();
+        for (const [key, value] of Object.entries(backup.localStorage)) {
+          const strValue = typeof value === "string" ? value : JSON.stringify(value);
+          localStorage.setItem(key, strValue);
+        }
+
+        // 恢复 IndexedDB 数据
+        try {
+          await initDB();
+          if (backup.indexedDB.chats) {
+            await saveChatsToIDB(backup.indexedDB.chats);
+          }
+          if (backup.indexedDB.chatMessages) {
+            for (const item of backup.indexedDB.chatMessages) {
+              if (item.chatId && item.messages) {
+                await saveChatMessagesToIDB(item.chatId, item.messages);
+              }
+            }
+          }
+        } catch (error) {
+          console.warn("恢复 IndexedDB 数据失败:", error);
+        }
+      } else {
+        // 旧格式：全部存入 localStorage（兼容旧备份）
+        localStorage.clear();
+        for (const [key, value] of Object.entries(backup)) {
+          const strValue = typeof value === "string" ? value : JSON.stringify(value);
+          localStorage.setItem(key, strValue);
+        }
       }
 
       alert("备份导入成功！页面将刷新以应用更改。");
@@ -173,31 +272,41 @@ const importBackup = (file) => {
   reader.readAsText(file);
 };
 
-// 清空聊天记录
-const clearChats = () => {
+// 清空聊天记录（包括 IndexedDB）
+const clearChats = async () => {
   if (!confirm("确定要清空所有聊天记录吗？此操作不可恢复。")) {
     return;
   }
 
+  try {
+    await initDB();
+    await clearStore(STORES.chats);
+    await clearStore(STORES.chatMessages);
+  } catch (error) {
+    console.warn("清空 IndexedDB 聊天记录失败:", error);
+  }
+
+  // 同时清理旧的 localStorage 数据（如果有）
   localStorage.removeItem("xinliaoChats");
   localStorage.removeItem("xinliaoMessages");
-  updateStorageDisplay();
+
+  await updateStorageDisplay();
   alert("聊天记录已清空");
 };
 
 // 清空动态数据
-const clearMoments = () => {
+const clearMoments = async () => {
   if (!confirm("确定要清空所有动态数据吗？此操作不可恢复。")) {
     return;
   }
 
   localStorage.removeItem("xinliaoMoments");
-  updateStorageDisplay();
+  await updateStorageDisplay();
   alert("动态数据已清空");
 };
 
-// 清空所有数据
-const clearAll = () => {
+// 清空所有数据（包括 IndexedDB）
+const clearAll = async () => {
   if (!confirm("确定要清空所有数据吗？此操作不可恢复！")) {
     return;
   }
@@ -206,7 +315,21 @@ const clearAll = () => {
     return;
   }
 
+  // 清空 IndexedDB
+  try {
+    await initDB();
+    await clearStore(STORES.chats);
+    await clearStore(STORES.chatMessages);
+    await clearStore(STORES.contacts);
+    await clearStore(STORES.moments);
+    await clearStore(STORES.settings);
+  } catch (error) {
+    console.warn("清空 IndexedDB 失败:", error);
+  }
+
+  // 清空 localStorage
   localStorage.clear();
+
   alert("所有数据已清空！页面将刷新。");
   location.reload();
 };
@@ -241,6 +364,9 @@ export const initDataSettings = () => {
   btnClearChats?.addEventListener("click", clearChats);
   btnClearMoments?.addEventListener("click", clearMoments);
   btnClearAll?.addEventListener("click", clearAll);
+
+  // 初始化时更新存储显示
+  updateStorageDisplay();
 };
 
 // 导出更新存储显示函数供外部调用

@@ -117,54 +117,144 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 0.75em;
+  gap: 0.5em;
   width: 100%;
   height: 100%;
+  position: relative;
+}
+
+/* 唱片机容器 */
+.player-turntable {
+  position: relative;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .player-disc {
   position: relative;
-  width: 5.5em;    /* 88px */
-  height: 5.5em;
+  width: 5em;
+  height: 5em;
   border-radius: 50%;
-  background: radial-gradient(circle at 35% 35%, #2a2a2a, #1a1a1a, #000000);
-  box-shadow: 
-    inset 0 0.5em 1em rgba(0, 0, 0, 0.3),
-    inset -0.5em 0 1em rgba(0, 0, 0, 0.2),
-    0 0.75em 1.5em rgba(0, 0, 0, 0.4);
+  background: #1a1a1a;
   display: flex;
   align-items: center;
   justify-content: center;
-  animation: spin 3s linear infinite;
   overflow: hidden;
   flex-shrink: 0;
 }
 
+/* 唱片纹路 - 这是旋转的部分 */
 .player-disc::before {
   content: '';
   position: absolute;
-  inset: 0.625em;
+  inset: 0.5em;
   border-radius: 50%;
-  background: repeating-conic-gradient(
-    from 0deg,
-    rgba(255, 255, 255, 0.02) 0deg 6deg,
-    transparent 6deg 12deg
+  background: 
+    /* 小标记 - 在螺纹盘边缘，灰色与整体风格搭配 */
+    radial-gradient(circle at 50% 12%, #404040 0.2em, transparent 0.2em),
+    /* 螺纹纹路 */
+    repeating-radial-gradient(
+      circle at center,
+      transparent 0,
+      transparent 0.08em,
+      rgba(60, 60, 60, 0.6) 0.08em,
+      rgba(60, 60, 60, 0.6) 0.16em
+    );
+  pointer-events: none;
+  animation: spin 3s linear infinite;
+  animation-play-state: paused;
+}
+
+/* 播放时螺纹盘旋转 */
+.music-player.playing .player-disc::before {
+  animation-play-state: running;
+}
+
+/* 唱片反光效果 */
+.player-disc::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.1) 0%,
+    transparent 50%,
+    rgba(0, 0, 0, 0.1) 100%
   );
   pointer-events: none;
 }
 
 .player-disc-inner {
-  width: 2.75em;
-  height: 2.75em;
+  width: 1.8em;
+  height: 1.8em;
   border-radius: 50%;
-  background: radial-gradient(circle at 35% 35%, #a0a0a0, #808080);
-  box-shadow: 
-    inset 0 0.25em 0.5em rgba(255, 255, 255, 0.25),
-    inset -0.25em -0.25em 0.5em rgba(0, 0, 0, 0.4),
-    0 0.375em 0.75em rgba(0, 0, 0, 0.4);
+  background: linear-gradient(135deg, #e8d5b7 0%, #d4c4a8 50%, #c9b896 100%);
   position: relative;
   z-index: 1;
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 唱片中心孔 */
+.player-disc-inner::after {
+  content: '';
+  width: 0.3em;
+  height: 0.3em;
+  border-radius: 50%;
+  background: #1a1a1a;
+}
+
+/* 唱针 */
+.player-tonearm {
+  position: absolute;
+  top: -0.3em;
+  right: 0.2em;
+  width: 3em;
+  height: 3em;
+  z-index: 10;
+  transform-origin: 85% 15%;
+  transform: rotate(-5deg);
+  transition: transform 0.3s ease;
+}
+
+/* 播放时唱针逆时针放到唱片上 */
+.music-player.playing .player-tonearm {
+  transform: rotate(-70deg);
+}
+
+/* 唱针底座 */
+.tonearm-base {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 0.6em;
+  height: 0.6em;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #c0c0c0, #808080);
+  border: 1px solid #606060;
+}
+
+/* 唱针臂 */
+.tonearm-arm {
+  position: absolute;
+  top: 0.25em;
+  right: 0.25em;
+  width: 2.2em;
+  height: 0.15em;
+  background: linear-gradient(to bottom, #a0a0a0, #707070);
+  transform-origin: right center;
+  transform: rotate(35deg);
+  border-radius: 0.05em;
+}
+
+/* 唱针头 - 隐藏，因为太小看不清楚 */
+.tonearm-head {
+  display: none;
 }
 
 @keyframes spin {
@@ -356,19 +446,41 @@
   height: 3.125em;
   border-radius: var(--radius-icon);
   background: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%);
-  display: grid;
-  place-items: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   font-size: 1.375em; /* 22px */
   color: #475569;
   border: 0.0625em solid rgba(255, 255, 255, 0.9); /* 1px */
   box-shadow: 0 0.625em 1.125em rgba(15, 23, 42, 0.12); /* 10px 18px */
+  overflow: hidden; /* 裁剪超出的图片 */
+  position: relative;
+}
+
+/* 图标风格类 */
+.app-icon.icon-rounded {
+  border-radius: 22%;
+}
+
+.app-icon.icon-circle {
+  border-radius: 50%;
+}
+
+.app-icon.icon-square {
+  border-radius: 4px;
+}
+
+.app-icon.icon-squircle {
+  border-radius: 35%;
 }
 
 .app-icon img {
-  width: 80%;
-  height: 80%;
-  margin: auto;
-  object-fit: contain;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
   border-radius: inherit;
   display: block;
 }

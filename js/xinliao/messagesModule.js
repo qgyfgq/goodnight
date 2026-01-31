@@ -11,6 +11,8 @@ import {
   generateId,
 } from "./messagesData.js";
 
+import { deleteChatMessagesFromIDB } from "../storage/indexedDB.js";
+
 // 获取 DOM 元素的辅助函数
 const getEl = (id) => document.getElementById(id);
 
@@ -226,12 +228,12 @@ export const renderContactSelect = (
  * @param {Object} options - 配置选项
  * @param {Function} options.getContacts - 获取联系人列表的函数
  * @param {Function} options.onChatClick - 点击会话回调
- * @returns {Object} 模块接口
+ * @returns {Promise<Object>} 模块接口
  */
-export const initMessagesModule = (options = {}) => {
+export const initMessagesModule = async (options = {}) => {
   const { getContacts, onChatClick } = options;
-  // 会话列表
-  let chats = loadStoredChats();
+  // 会话列表（异步加载）
+  let chats = await loadStoredChats();
 
   // 选中的联系人 ID（用于新建会话）
   let selectedContactIds = new Set();
@@ -342,17 +344,18 @@ export const initMessagesModule = (options = {}) => {
   /**
    * 删除选中的会话
    */
-  const deleteSelectedChats = () => {
+  const deleteSelectedChats = async () => {
     if (selectedChatIds.size === 0) return;
 
     // 过滤掉选中的会话
     chats = chats.filter((chat) => !selectedChatIds.has(chat.id));
-    saveChats(chats);
+    await saveChats(chats);
 
-    // 同时删除对应的聊天记录
-    selectedChatIds.forEach((chatId) => {
-      localStorage.removeItem(`xinliaoChatMessages_${chatId}`);
-    });
+    // 同时删除对应的聊天记录（使用 IndexedDB）
+    const deletePromises = Array.from(selectedChatIds).map((chatId) =>
+      deleteChatMessagesFromIDB(chatId)
+    );
+    await Promise.all(deletePromises);
 
     exitSelectMode();
   };
@@ -426,10 +429,10 @@ export const initMessagesModule = (options = {}) => {
    * 处理联系人选择
    * @param {string} contactId - 联系人 ID
    */
-  const handleContactSelect = (contactId) => {
+  const handleContactSelect = async (contactId) => {
     if (createMode === "single") {
       // 单聊模式：直接创建会话
-      createSingleChat(contactId);
+      await createSingleChat(contactId);
     } else {
       // 群聊模式：切换选中状态
       if (selectedContactIds.has(contactId)) {
@@ -445,7 +448,7 @@ export const initMessagesModule = (options = {}) => {
    * 创建单聊会话
    * @param {string} contactId - 联系人 ID
    */
-  const createSingleChat = (contactId) => {
+  const createSingleChat = async (contactId) => {
     const contacts = getContacts();
     const contact = contacts.find((c) => c.id === contactId);
     if (!contact) {
@@ -462,7 +465,11 @@ export const initMessagesModule = (options = {}) => {
     );
 
     if (existingChat) {
-      showHint("已存在与该角色的会话");
+      // 已存在会话，直接打开它
+      if (onChatClick) {
+        onChatClick(existingChat);
+      }
+      toggleActions();
       return;
     }
 
@@ -472,19 +479,25 @@ export const initMessagesModule = (options = {}) => {
       name: contact.name,
       avatar: contact.avatar,
       members: [contactId],
-      lastMessage: "",
+      lastMessage: "暂无消息",
       lastTime: Date.now(),
     };
 
-    chats = addChat(chats, newChat);
+    chats = await addChat(chats, newChat);
     updateChatList();
     toggleActions();
+
+    // 创建后直接打开聊天
+    const createdChat = chats.find(c => c.members[0] === contactId && c.type === "single");
+    if (createdChat && onChatClick) {
+      onChatClick(createdChat);
+    }
   };
 
   /**
    * 创建群聊会话
    */
-  const createGroupChat = () => {
+  const createGroupChat = async () => {
     if (selectedContactIds.size < 2) {
       showHint("请至少选择 2 位角色");
       return;
@@ -509,7 +522,7 @@ export const initMessagesModule = (options = {}) => {
       lastTime: Date.now(),
     };
 
-    chats = addChat(chats, newChat);
+    chats = await addChat(chats, newChat);
     updateChatList();
     toggleActions();
   };
@@ -575,10 +588,10 @@ export const initMessagesModule = (options = {}) => {
   createSingleBtn?.addEventListener("click", () => setCreateMode("single"));
   createGroupBtn?.addEventListener("click", () => setCreateMode("group"));
 
-  selectList?.addEventListener("click", (event) => {
+  selectList?.addEventListener("click", async (event) => {
     const item = event.target.closest(".xinliao-select-item");
     if (!item) return;
-    handleContactSelect(item.dataset.contactId);
+    await handleContactSelect(item.dataset.contactId);
   });
 
   // 群聊确认按钮
@@ -592,8 +605,8 @@ export const initMessagesModule = (options = {}) => {
   return {
     updateChatList,
     getChats: () => chats,
-    reloadChats: () => {
-      chats = loadStoredChats();
+    reloadChats: async () => {
+      chats = await loadStoredChats();
       updateChatList();
     },
   };

@@ -10,8 +10,14 @@ import { initUiSoundTrigger } from "./audio/uiSoundTrigger.js";
 import { getAudioManager } from "./audio/audioManager.js";
 import { initXinliaoView } from "./ui/xinliaoView.js";
 import { initWorldbookView } from "./ui/worldbookView.js";
+import { initBeautifyView } from "./ui/beautifyView.js";
+import { initMusicView } from "./ui/musicView.js";
+import { migrateFromLocalStorage } from "./storage/indexedDB.js";
 
 const setup = async () => {
+  // 迁移旧数据（从 localStorage 到 IndexedDB）
+  await migrateFromLocalStorage();
+
   // 初始化状态栏（时间和电池）
   await initStatusBar();
 
@@ -45,10 +51,16 @@ const setup = async () => {
   initUiSoundTrigger();
 
   // 初始化信聊视图
-  initXinliaoView();
+  await initXinliaoView();
 
   // 初始化世界书视图
   initWorldbookView();
+
+  // 初始化美化视图
+  initBeautifyView();
+
+  // 初始化音乐视图
+  initMusicView();
 };
 
 document.addEventListener("DOMContentLoaded", setup);

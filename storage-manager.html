@@ -53,6 +53,13 @@
       color: #666;
       text-align: center;
     }
+    .section-title {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: #666;
+      margin: 1rem 0 0.5rem;
+      padding-left: 0.5rem;
+    }
     .item-list {
       display: flex;
       flex-direction: column;
@@ -68,6 +75,10 @@
       border: 1px solid #e9ecef;
       border-radius: 0.75rem;
     }
+    .item.idb {
+      border-color: #d4edda;
+      background: #f8fff9;
+    }
     .item-info {
       display: flex;
       flex-direction: column;
@@ -80,6 +91,14 @@
     .item-size {
       font-size: 0.8rem;
       color: #888;
+    }
+    .item-badge {
+      font-size: 0.7rem;
+      padding: 0.15rem 0.4rem;
+      border-radius: 0.25rem;
+      background: #e7f3ff;
+      color: #0066cc;
+      margin-left: 0.5rem;
     }
     .item-btn {
       padding: 0.4rem 0.8rem;
@@ -184,7 +203,11 @@
 
     <div class="success" id="successMsg">操作成功！</div>
 
-    <div class="item-list" id="itemList"></div>
+    <div class="section-title">📁 localStorage 数据</div>
+    <div class="item-list" id="localStorageList"></div>
+
+    <div class="section-title">🗄️ IndexedDB 数据</div>
+    <div class="item-list" id="indexedDBList"></div>
 
     <div class="warning">
       ⚠️ 删除数据后无法恢复，请谨慎操作！
@@ -208,16 +231,96 @@
   </div>
 
   <script>
-    // 存储项配置
+    // IndexedDB 配置
+    const DB_NAME = 'goodnightDB';
+    const DB_VERSION = 1;
+    const STORES = {
+      chats: 'chats',
+      chatMessages: 'chatMessages',
+      contacts: 'contacts',
+      moments: 'moments',
+      worldbook: 'worldbook',
+      settings: 'settings',
+    };
+
+    let db = null;
+
+    // 初始化 IndexedDB
+    async function initDB() {
+      return new Promise((resolve, reject) => {
+        if (db) {
+          resolve(db);
+          return;
+        }
+
+        const request = indexedDB.open(DB_NAME, DB_VERSION);
+
+        request.onerror = () => reject(request.error);
+        request.onsuccess = () => {
+          db = request.result;
+          resolve(db);
+        };
+
+        request.onupgradeneeded = (event) => {
+          const database = event.target.result;
+          for (const storeName of Object.values(STORES)) {
+            if (!database.objectStoreNames.contains(storeName)) {
+              if (storeName === 'chatMessages') {
+                database.createObjectStore(storeName, { keyPath: 'chatId' });
+              } else if (storeName === 'settings' || storeName === 'worldbook') {
+                database.createObjectStore(storeName, { keyPath: 'key' });
+              } else {
+                database.createObjectStore(storeName, { keyPath: 'id' });
+              }
+            }
+          }
+        };
+      });
+    }
+
+    // 获取 IndexedDB 存储的所有数据
+    async function getAllFromStore(storeName) {
+      await initDB();
+      return new Promise((resolve, reject) => {
+        const transaction = db.transaction([storeName], 'readonly');
+        const store = transaction.objectStore(storeName);
+        const request = store.getAll();
+        request.onsuccess = () => resolve(request.result || []);
+        request.onerror = () => reject(request.error);
+      });
+    }
+
+    // 清空 IndexedDB 存储
+    async function clearStore(storeName) {
+      await initDB();
+      return new Promise((resolve, reject) => {
+        const transaction = db.transaction([storeName], 'readwrite');
+        const store = transaction.objectStore(storeName);
+        const request = store.clear();
+        request.onsuccess = () => resolve();
+        request.onerror = () => reject(request.error);
+      });
+    }
+
+    // localStorage 存储项配置
     const storageItems = [
       { key: 'xinliaoContacts', name: '联系人数据', icon: '👥' },
-      { key: 'xinliaoChats', name: '会话列表', icon: '💬' },
       { key: 'xinliaoMoments', name: '动态数据', icon: '📷' },
       { key: 'xinliaoCover', name: '动态封面图', icon: '🖼️' },
       { key: 'xinliaoUserAvatar', name: '用户头像', icon: '👤' },
       { key: 'xinliaoUserName', name: '用户昵称', icon: '📝' },
       { key: 'apiProfiles', name: 'API 配置', icon: '⚙️' },
       { key: 'activeProfileId', name: '当前配置 ID', icon: '🔑' },
+      { key: 'soundSettings', name: '提示音设置', icon: '🔊' },
+    ];
+
+    // IndexedDB 存储项配置
+    const idbStoreItems = [
+      { store: 'chats', name: '会话列表', icon: '💬' },
+      { store: 'chatMessages', name: '聊天记录', icon: '💭' },
+      { store: 'contacts', name: '联系人 (IDB)', icon: '👥' },
+      { store: 'moments', name: '动态 (IDB)', icon: '📷' },
+      { store: 'settings', name: '设置 (IDB)', icon: '⚙️' },
     ];
 
     // 格式化字节大小
@@ -246,7 +349,7 @@
       return total;
     }
 
-    // 获取聊天记录的存储项
+    // 获取聊天记录的存储项（旧版 localStorage）
     function getChatMessageKeys() {
       const keys = [];
       for (let i = 0; i < localStorage.length; i++) {
@@ -259,24 +362,18 @@
     }
 
     // 刷新存储信息
-    function refreshStorage() {
-      const totalSize = getTotalSize();
-      const maxSize = 5 * 1024 * 1024; // 假设 5MB 限制
-      const percentage = Math.min((totalSize / maxSize) * 100, 100);
+    async function refreshStorage() {
+      let totalSize = getTotalSize();
 
-      document.getElementById('storageBarFill').style.width = percentage + '%';
-      document.getElementById('storageText').textContent = 
-        `已使用 ${formatBytes(totalSize)} / 约 ${formatBytes(maxSize)} (${percentage.toFixed(1)}%)`;
-
-      // 渲染存储项列表
-      const itemList = document.getElementById('itemList');
-      let html = '';
+      // 渲染 localStorage 列表
+      const localStorageList = document.getElementById('localStorageList');
+      let localHtml = '';
 
       // 添加预定义的存储项
       for (const item of storageItems) {
         const size = getItemSize(item.key);
         if (size > 0) {
-          html += `
+          localHtml += `
             <div class="item">
               <div class="item-info">
                 <span class="item-name">${item.icon} ${item.name}</span>
@@ -288,17 +385,17 @@
         }
       }
 
-      // 添加聊天记录
+      // 添加旧版聊天记录（localStorage）
       const chatKeys = getChatMessageKeys();
       if (chatKeys.length > 0) {
         let chatTotalSize = 0;
         chatKeys.forEach(key => {
           chatTotalSize += getItemSize(key);
         });
-        html += `
+        localHtml += `
           <div class="item">
             <div class="item-info">
-              <span class="item-name">💭 聊天记录 (${chatKeys.length} 个会话)</span>
+              <span class="item-name">💭 旧版聊天记录 (${chatKeys.length} 个会话)</span>
               <span class="item-size">${formatBytes(chatTotalSize)}</span>
             </div>
             <button class="item-btn delete" onclick="deleteChatMessages()">删除全部</button>
@@ -306,14 +403,71 @@
         `;
       }
 
-      if (!html) {
-        html = '<div class="item"><div class="item-info"><span class="item-name">暂无存储数据</span></div></div>';
+      // 检查旧版会话列表
+      const oldChatsSize = getItemSize('xinliaoChats');
+      if (oldChatsSize > 0) {
+        localHtml += `
+          <div class="item">
+            <div class="item-info">
+              <span class="item-name">💬 旧版会话列表</span>
+              <span class="item-size">${formatBytes(oldChatsSize)}</span>
+            </div>
+            <button class="item-btn delete" onclick="deleteItem('xinliaoChats')">删除</button>
+          </div>
+        `;
       }
 
-      itemList.innerHTML = html;
+      if (!localHtml) {
+        localHtml = '<div class="item"><div class="item-info"><span class="item-name">暂无 localStorage 数据</span></div></div>';
+      }
+
+      localStorageList.innerHTML = localHtml;
+
+      // 渲染 IndexedDB 列表
+      const indexedDBList = document.getElementById('indexedDBList');
+      let idbHtml = '';
+      let idbTotalSize = 0;
+
+      try {
+        await initDB();
+
+        for (const item of idbStoreItems) {
+          const data = await getAllFromStore(item.store);
+          if (data.length > 0) {
+            const size = new Blob([JSON.stringify(data)]).size;
+            idbTotalSize += size;
+            idbHtml += `
+              <div class="item idb">
+                <div class="item-info">
+                  <span class="item-name">${item.icon} ${item.name}<span class="item-badge">IndexedDB</span></span>
+                  <span class="item-size">${formatBytes(size)} (${data.length} 条)</span>
+                </div>
+                <button class="item-btn delete" onclick="clearIDBStore('${item.store}')">删除</button>
+              </div>
+            `;
+          }
+        }
+      } catch (error) {
+        console.warn('读取 IndexedDB 失败:', error);
+      }
+
+      if (!idbHtml) {
+        idbHtml = '<div class="item"><div class="item-info"><span class="item-name">暂无 IndexedDB 数据</span></div></div>';
+      }
+
+      indexedDBList.innerHTML = idbHtml;
+
+      // 更新总存储信息
+      totalSize += idbTotalSize;
+      const maxSize = 50 * 1024 * 1024; // IndexedDB 支持更大容量
+      const percentage = Math.min((totalSize / maxSize) * 100, 100);
+
+      document.getElementById('storageBarFill').style.width = percentage + '%';
+      document.getElementById('storageText').textContent = 
+        `已使用 ${formatBytes(totalSize)} / 约 ${formatBytes(maxSize)} (${percentage.toFixed(1)}%)`;
     }
 
-    // 删除单个存储项
+    // 删除单个 localStorage 存储项
     function deleteItem(key) {
       if (confirm(`确定要删除 "${key}" 吗？`)) {
         localStorage.removeItem(key);
@@ -322,9 +476,9 @@
       }
     }
 
-    // 删除所有聊天记录
+    // 删除所有旧版聊天记录（localStorage）
     function deleteChatMessages() {
-      if (confirm('确定要删除所有聊天记录吗？')) {
+      if (confirm('确定要删除所有旧版聊天记录吗？')) {
         const chatKeys = getChatMessageKeys();
         chatKeys.forEach(key => {
           localStorage.removeItem(key);
@@ -334,11 +488,39 @@
       }
     }
 
+    // 清空 IndexedDB 存储
+    async function clearIDBStore(storeName) {
+      const storeItem = idbStoreItems.find(item => item.store === storeName);
+      const displayName = storeItem ? storeItem.name : storeName;
+      
+      if (confirm(`确定要删除 "${displayName}" 吗？`)) {
+        try {
+          await clearStore(storeName);
+          showSuccess();
+          refreshStorage();
+        } catch (error) {
+          alert('删除失败: ' + error.message);
+        }
+      }
+    }
+
     // 清空所有存储
-    function clearAllStorage() {
+    async function clearAllStorage() {
       if (confirm('⚠️ 确定要清空所有数据吗？此操作不可恢复！')) {
         if (confirm('再次确认：这将删除所有联系人、聊天记录、动态等数据！')) {
+          // 清空 localStorage
           localStorage.clear();
+
+          // 清空 IndexedDB
+          try {
+            await initDB();
+            for (const storeName of Object.values(STORES)) {
+              await clearStore(storeName);
+            }
+          } catch (error) {
+            console.warn('清空 IndexedDB 失败:', error);
+          }
+
           showSuccess();
           refreshStorage();
         }

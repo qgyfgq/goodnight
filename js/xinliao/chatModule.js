@@ -172,7 +172,7 @@ export const initChatModule = (options = {}) => {
   /**
    * 删除选中的消息
    */
-  const deleteSelectedMessages = () => {
+  const deleteSelectedMessages = async () => {
     if (selectedMsgIndexes.size === 0 || !currentChat) return;
 
     // 过滤掉选中的消息
@@ -182,14 +182,14 @@ export const initChatModule = (options = {}) => {
     }
 
     // 保存更新后的消息
-    saveChatMessages(currentChat.id, messages);
+    await saveChatMessages(currentChat.id, messages);
 
     // 更新会话最后消息
     if (messages.length > 0) {
       const lastMsg = messages[messages.length - 1];
-      updateChatLastMessage(lastMsg.content);
+      await updateChatLastMessage(lastMsg.content);
     } else {
-      updateChatLastMessage("");
+      await updateChatLastMessage("");
     }
 
     exitSelectMode();
@@ -249,16 +249,16 @@ export const initChatModule = (options = {}) => {
    * 更新会话的最后消息
    * @param {string} content - 消息内容
    */
-  const updateChatLastMessage = (content) => {
+  const updateChatLastMessage = async (content) => {
     if (!currentChat) return;
 
-    const chats = loadStoredChats();
+    const chats = await loadStoredChats();
     const chatIndex = chats.findIndex((c) => c.id === currentChat.id);
     if (chatIndex === -1) return;
 
     chats[chatIndex].lastMessage = content.slice(0, 50);
     chats[chatIndex].lastTime = Date.now();
-    saveChats(chats);
+    await saveChats(chats);
 
     // 通知外部更新
     onChatUpdate?.();
@@ -334,7 +334,7 @@ export const initChatModule = (options = {}) => {
         if (!content) continue;
 
         // 添加消息
-        messages = addMessage(currentChat.id, {
+        messages = await addMessage(currentChat.id, {
           role: "assistant",
           content: content,
           senderId: replyContact.id,
@@ -351,7 +351,7 @@ export const initChatModule = (options = {}) => {
 
       // 更新会话最后消息
       if (lastContent) {
-        updateChatLastMessage(lastContent);
+        await updateChatLastMessage(lastContent);
       }
     } catch (error) {
       console.error("获取回复失败:", error);
@@ -365,11 +365,11 @@ export const initChatModule = (options = {}) => {
    * 打开聊天
    * @param {Object} chat - 会话数据
    */
-  const openChat = (chat) => {
+  const openChat = async (chat) => {
     if (!chat) return;
 
     currentChat = chat;
-    messages = loadChatMessages(chat.id);
+    messages = await loadChatMessages(chat.id);
 
     // 更新标题
     if (chatName) {
@@ -430,19 +430,19 @@ export const initChatModule = (options = {}) => {
    * 发送用户消息
    * @param {string} content - 消息内容
    */
-  const sendUserMessage = (content) => {
+  const sendUserMessage = async (content) => {
     if (!currentChat || !content.trim()) return;
 
     const trimmedContent = content.trim();
 
     // 添加用户消息
-    messages = addMessage(currentChat.id, {
+    messages = await addMessage(currentChat.id, {
       role: "user",
       content: trimmedContent,
     });
 
     renderMessages();
-    updateChatLastMessage(trimmedContent);
+    await updateChatLastMessage(trimmedContent);
 
     // 清空输入框
     if (chatInput) {
@@ -464,17 +464,17 @@ export const initChatModule = (options = {}) => {
   /**
    * 处理发送按钮点击
    */
-  const handleSend = () => {
+  const handleSend = async () => {
     if (isLoading) return;
 
     const content = chatInput?.value || "";
 
     if (content.trim()) {
       // 有内容：发送消息
-      sendUserMessage(content);
+      await sendUserMessage(content);
     } else {
       // 无内容：让角色主动回复
-      requestRoleReply();
+      await requestRoleReply();
     }
   };
 

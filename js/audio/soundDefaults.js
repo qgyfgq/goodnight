@@ -1,6 +1,7 @@
 export const DEFAULT_SOUND_SOURCES = {
   uiClick: "assets/sounds/ui-click.mp3",
-  message: "assets/sounds/message.mp3",
+  // 暂时使用 ui-click.mp3 作为消息提示音的占位
+  message: "assets/sounds/ui-click.mp3",
 };
 
 export const DEFAULT_SOUND_SETTINGS = {

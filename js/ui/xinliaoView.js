@@ -102,7 +102,7 @@ const renderContacts = (container, list = []) => {
 };
 
 
-export const initXinliaoView = () => {
+export const initXinliaoView = async () => {
   const homeView = getEl("homeView");
   const settingsView = getEl("settingsView");
   const xinliaoView = getEl("xinliaoView");
@@ -1100,7 +1100,7 @@ export const initXinliaoView = () => {
   });
 
   // 初始化消息模块（传入获取联系人的函数和点击回调）
-  messagesModule = initMessagesModule({
+  messagesModule = await initMessagesModule({
     getContacts: () => contacts,
     onChatClick: (chat) => {
       // 点击会话时打开聊天界面

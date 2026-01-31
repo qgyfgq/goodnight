@@ -1,10 +1,29 @@
 /**
  * 聊天数据管理模块
  * 管理聊天记录的存储和读取
+ * 使用 IndexedDB 存储以支持更大容量
  */
 
-// 本地存储键名前缀
-const CHAT_MESSAGES_PREFIX = "xinliaoChatMessages_";
+import {
+  initDB,
+  saveChatMessagesToIDB,
+  loadChatMessagesFromIDB,
+  deleteChatMessagesFromIDB,
+} from "../storage/indexedDB.js";
+
+// 数据库初始化状态
+let dbReady = false;
+
+/**
+ * 确保数据库已初始化
+ * @returns {Promise<void>}
+ */
+const ensureDB = async () => {
+  if (!dbReady) {
+    await initDB();
+    dbReady = true;
+  }
+};
 
 /**
  * 生成消息 ID
@@ -28,24 +47,16 @@ export const normalizeMessage = (msg = {}) => ({
 });
 
 /**
- * 获取聊天记录存储键名
- * @param {string} chatId - 会话 ID
- * @returns {string} 存储键名
- */
-const getStorageKey = (chatId) => `${CHAT_MESSAGES_PREFIX}${chatId}`;
-
-/**
  * 加载聊天记录
  * @param {string} chatId - 会话 ID
- * @returns {Array} 消息列表
+ * @returns {Promise<Array>} 消息列表
  */
-export const loadChatMessages = (chatId) => {
+export const loadChatMessages = async (chatId) => {
   if (!chatId) return [];
   try {
-    const raw = localStorage.getItem(getStorageKey(chatId));
-    if (!raw) return [];
-    const data = JSON.parse(raw);
-    const list = Array.isArray(data) ? data : [data];
+    await ensureDB();
+    const data = await loadChatMessagesFromIDB(chatId);
+    const list = Array.isArray(data) ? data : [];
     return list.map(normalizeMessage);
   } catch (error) {
     console.warn("加载聊天记录失败:", error);
@@ -57,11 +68,13 @@ export const loadChatMessages = (chatId) => {
  * 保存聊天记录
  * @param {string} chatId - 会话 ID
  * @param {Array} messages - 消息列表
+ * @returns {Promise<void>}
  */
-export const saveChatMessages = (chatId, messages) => {
+export const saveChatMessages = async (chatId, messages) => {
   if (!chatId) return;
   try {
-    localStorage.setItem(getStorageKey(chatId), JSON.stringify(messages));
+    await ensureDB();
+    await saveChatMessagesToIDB(chatId, messages);
   } catch (error) {
     console.warn("保存聊天记录失败:", error);
   }
@@ -71,24 +84,26 @@ export const saveChatMessages = (chatId, messages) => {
  * 添加消息到聊天记录
  * @param {string} chatId - 会话 ID
  * @param {Object} msgData - 消息数据
- * @returns {Array} 更新后的消息列表
+ * @returns {Promise<Array>} 更新后的消息列表
  */
-export const addMessage = (chatId, msgData) => {
-  const messages = loadChatMessages(chatId);
+export const addMessage = async (chatId, msgData) => {
+  const messages = await loadChatMessages(chatId);
   const newMessage = normalizeMessage(msgData);
   messages.push(newMessage);
-  saveChatMessages(chatId, messages);
+  await saveChatMessages(chatId, messages);
   return messages;
 };
 
 /**
  * 删除聊天记录
  * @param {string} chatId - 会话 ID
+ * @returns {Promise<void>}
  */
-export const deleteChatMessages = (chatId) => {
+export const deleteChatMessages = async (chatId) => {
   if (!chatId) return;
   try {
-    localStorage.removeItem(getStorageKey(chatId));
+    await ensureDB();
+    await deleteChatMessagesFromIDB(chatId);
   } catch (error) {
     console.warn("删除聊天记录失败:", error);
   }

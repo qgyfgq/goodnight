@@ -11,20 +11,34 @@ const formatTime = () => {
   return `${hh}:${mm}`;
 };
 
-const getBatteryStatus = async () => {
+// 缓存电池对象和状态
+let batteryInstance = null;
+let lastBatteryStatus = { level: 100, charging: false };
+
+// 初始化电池 API
+const initBattery = async () => {
   try {
-    const battery = await navigator.getBattery?.() || await navigator.battery?.();
-    if (!battery) {
-      return { level: Math.random() * 100 | 0, charging: false };
+    if (navigator.getBattery) {
+      batteryInstance = await navigator.getBattery();
+    } else if (navigator.battery) {
+      batteryInstance = navigator.battery;
     }
-    return {
-      level: Math.round(battery.level * 100),
-      charging: battery.charging
-    };
-  } catch {
-    // 回退方案：显示随机电量（仅用于演示）
-    return { level: Math.random() * 100 | 0, charging: false };
+  } catch (e) {
+    console.log('Battery API not supported');
   }
+  return batteryInstance;
+};
+
+// 从电池对象获取状态
+const getBatteryFromInstance = () => {
+  if (!batteryInstance) {
+    return lastBatteryStatus;
+  }
+  lastBatteryStatus = {
+    level: Math.round(batteryInstance.level * 100),
+    charging: batteryInstance.charging
+  };
+  return lastBatteryStatus;
 };
 
 const updateBatteryRing = (percentage, element) => {
@@ -59,28 +73,50 @@ export const initStatusBar = async () => {
     timeEl.textContent = formatTime();
   };
 
-  const updateBattery = async () => {
-    const { level, charging } = await getBatteryStatus();
+  const updateBattery = () => {
+    const { level, charging } = getBatteryFromInstance();
     percentageEl.textContent = `${level}%`;
-    chargingEl.style.display = charging ? 'block' : 'none';
+    if (chargingEl) {
+      chargingEl.style.display = charging ? 'block' : 'none';
+    }
     updateBatteryRing(level, batteryWidget);
   };
 
-  // 初始化
+  // 初始化时间
   updateTime();
+
+  // 初始化电池 API
+  await initBattery();
+  
+  // 初始化电池显示
   updateBattery();
 
   // 每分钟更新时间
   setInterval(updateTime, 60 * 1000);
 
-  // 每 2 秒更新电池（或监听电池事件）
-  setInterval(updateBattery, 2000);
-
-  // 如果浏览器支持电池 API 事件
-  if (navigator.getBattery) {
-    navigator.getBattery().then((battery) => {
-      battery.addEventListener('levelchange', updateBattery);
-      battery.addEventListener('chargingchange', updateBattery);
+  // 如果有电池实例，监听事件实现实时更新
+  if (batteryInstance) {
+    // 监听电量变化
+    batteryInstance.addEventListener('levelchange', () => {
+      updateBattery();
+    });
+    
+    // 监听充电状态变化
+    batteryInstance.addEventListener('chargingchange', () => {
+      updateBattery();
+    });
+    
+    // 监听充电时间变化（可选）
+    batteryInstance.addEventListener('chargingtimechange', () => {
+      updateBattery();
+    });
+    
+    // 监听放电时间变化（可选）
+    batteryInstance.addEventListener('dischargingtimechange', () => {
+      updateBattery();
     });
   }
+
+  // 备用：每 30 秒轮询更新（防止事件不触发的情况）
+  setInterval(updateBattery, 30 * 1000);
 };
