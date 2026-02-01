@@ -12,6 +12,7 @@ import { initXinliaoView } from "./ui/xinliaoView.js";
 import { initWorldbookView } from "./ui/worldbookView.js";
 import { initBeautifyView } from "./ui/beautifyView.js";
 import { initMusicView } from "./ui/musicView.js";
+import { initHomeGardenView } from "./ui/homeGardenView.js";
 import { migrateFromLocalStorage } from "./storage/indexedDB.js";
 
 const setup = async () => {
@@ -61,6 +62,9 @@ const setup = async () => {
 
   // 初始化音乐视图
   initMusicView();
+
+  // 初始化家园视图
+  initHomeGardenView();
 };
 
 document.addEventListener("DOMContentLoaded", setup);

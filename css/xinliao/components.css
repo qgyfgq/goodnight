@@ -720,3 +720,574 @@
   color: var(--text-secondary);
   padding: 0.2em 0.5em;
 }
+
+/* ========== 联系人分组功能 ========== */
+
+/* 新建分组按钮 - 虚线边框 */
+.xinliao-new-group-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5em;
+  width: 90%;
+  max-width: 22em;
+  margin: 0.8em auto 0;
+  padding: 0.9em 1em;
+  background: rgba(255, 255, 255, 0.5);
+  border: 2px dashed rgba(148, 163, 184, 0.5);
+  border-radius: 1em;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.xinliao-new-group-btn:hover {
+  background: rgba(255, 255, 255, 0.7);
+  border-color: rgba(125, 165, 255, 0.6);
+}
+
+.xinliao-new-group-btn:active {
+  transform: scale(0.98);
+  background: rgba(240, 245, 255, 0.8);
+}
+
+.xinliao-new-group-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #64748b;
+}
+
+.xinliao-new-group-text {
+  font-size: 0.9em;
+  color: #64748b;
+  font-weight: 500;
+}
+
+/* 分组列表容器 */
+.xinliao-groups-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5em;
+  padding: 0.5em 0;
+}
+
+/* 分组项 */
+.xinliao-group-item {
+  width: 90%;
+  max-width: 22em;
+  margin: 0 auto;
+  background: rgba(255, 255, 255, 0.85);
+  border-radius: 1em;
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  box-shadow: 0 0.5em 1.2em rgba(15, 23, 42, 0.1);
+  overflow: hidden;
+}
+
+/* 分组头部 */
+.xinliao-group-header {
+  display: flex;
+  align-items: center;
+  gap: 0.6em;
+  padding: 0.7em 0.9em;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.xinliao-group-header:hover {
+  background: rgba(125, 165, 255, 0.08);
+}
+
+.xinliao-group-header:active {
+  background: rgba(125, 165, 255, 0.15);
+}
+
+/* 展开箭头 */
+.xinliao-group-arrow {
+  width: 1.2em;
+  height: 1.2em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #64748b;
+  font-size: 0.9em;
+  transition: transform 0.2s ease;
+  flex-shrink: 0;
+}
+
+.xinliao-group-item.is-expanded .xinliao-group-arrow {
+  transform: rotate(90deg);
+}
+
+/* 分组名称 */
+.xinliao-group-name {
+  flex: 1;
+  font-size: 0.95em;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+/* 分组成员数量 */
+.xinliao-group-count {
+  font-size: 0.8em;
+  color: var(--text-secondary);
+  background: rgba(148, 163, 184, 0.15);
+  padding: 0.15em 0.5em;
+  border-radius: 999px;
+}
+
+/* 分组删除按钮 */
+.xinliao-group-delete {
+  width: 1.8em;
+  height: 1.8em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  border-radius: 50%;
+  color: #94a3b8;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+}
+
+.xinliao-group-delete:hover {
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+}
+
+.xinliao-group-delete:active {
+  background: rgba(239, 68, 68, 0.2);
+}
+
+/* 分组内容（联系人列表） */
+.xinliao-group-content {
+  display: none;
+  flex-direction: column;
+  gap: 0.3em;
+  padding: 0 0.5em 0.5em;
+  border-top: 1px solid rgba(148, 163, 184, 0.15);
+}
+
+.xinliao-group-item.is-expanded .xinliao-group-content {
+  display: flex;
+}
+
+/* 分组内的联系人项 */
+.xinliao-group-contact {
+  display: flex;
+  align-items: center;
+  gap: 0.6em;
+  padding: 0.5em 0.6em;
+  background: rgba(248, 250, 252, 0.8);
+  border-radius: 0.7em;
+  cursor: pointer;
+  transition: background 0.15s ease;
+  border: none;
+  width: 100%;
+  text-align: left;
+}
+
+.xinliao-group-contact:hover {
+  background: rgba(241, 245, 249, 1);
+}
+
+.xinliao-group-contact .xinliao-avatar {
+  width: 2.2em;
+  height: 2.2em;
+  min-width: 2.2em;
+  min-height: 2.2em;
+}
+
+.xinliao-group-contact-name {
+  flex: 1;
+  font-size: 0.85em;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 分组空状态 */
+.xinliao-group-empty {
+  text-align: center;
+  color: var(--text-secondary);
+  font-size: 0.8em;
+  padding: 0.8em;
+}
+
+/* 新建分组弹窗 */
+.xinliao-group-popup {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.4);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeIn 0.15s ease;
+}
+
+.xinliao-group-popup.active {
+  display: flex;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.xinliao-group-popup-card {
+  width: 85%;
+  max-width: 280px;
+  background: #fff;
+  border-radius: 1.2em;
+  box-shadow: 0 1em 3em rgba(0, 0, 0, 0.25);
+  padding: 1.2em;
+  animation: slideUp 0.2s ease;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(1em);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.xinliao-group-popup-title {
+  font-size: 1em;
+  font-weight: 600;
+  color: var(--text-primary);
+  text-align: center;
+  margin-bottom: 1em;
+}
+
+.xinliao-group-popup-field {
+  margin-bottom: 1em;
+}
+
+.xinliao-group-popup-field label {
+  display: block;
+  font-size: 0.85em;
+  color: var(--text-secondary);
+  margin-bottom: 0.4em;
+}
+
+.xinliao-group-popup-field input {
+  width: 100%;
+  padding: 0.6em 0.8em;
+  border: 1px solid rgba(148, 163, 184, 0.4);
+  border-radius: 0.7em;
+  font-size: 0.9em;
+  color: var(--text-primary);
+  background: #f8fafc;
+  outline: none;
+  transition: border-color 0.15s ease;
+}
+
+.xinliao-group-popup-field input:focus {
+  border-color: rgba(125, 165, 255, 0.6);
+}
+
+.xinliao-group-popup-actions {
+  display: flex;
+  gap: 0.6em;
+  justify-content: flex-end;
+}
+
+.xinliao-group-popup-btn {
+  padding: 0.5em 1em;
+  border: none;
+  border-radius: 0.6em;
+  font-size: 0.85em;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.xinliao-group-popup-btn.ghost {
+  background: transparent;
+  color: var(--text-secondary);
+}
+
+.xinliao-group-popup-btn.ghost:hover {
+  background: rgba(148, 163, 184, 0.1);
+}
+
+.xinliao-group-popup-btn.primary {
+  background: linear-gradient(135deg, #7da6ff, #5b7bff);
+  color: #fff;
+}
+
+.xinliao-group-popup-btn.primary:hover {
+  box-shadow: 0 0.3em 0.8em rgba(91, 123, 255, 0.3);
+}
+
+.xinliao-group-popup-btn.primary:active {
+  transform: scale(0.98);
+}
+
+/* ========== 联系人操作菜单弹窗 ========== */
+.xinliao-contact-action-popup {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.4);
+  display: none;
+  align-items: flex-end;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeIn 0.15s ease;
+}
+
+.xinliao-contact-action-popup.active {
+  display: flex;
+}
+
+.xinliao-contact-action-card {
+  width: 100%;
+  max-width: 320px;
+  background: #fff;
+  border-radius: 1.2em 1.2em 0 0;
+  box-shadow: 0 -0.5em 2em rgba(0, 0, 0, 0.2);
+  padding: 0.8em;
+  animation: slideUpAction 0.25s ease;
+}
+
+@keyframes slideUpAction {
+  from {
+    opacity: 0;
+    transform: translateY(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.xinliao-contact-action-title {
+  font-size: 0.9em;
+  font-weight: 600;
+  color: var(--text-primary);
+  text-align: center;
+  padding: 0.5em 0 0.8em;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.2);
+  margin-bottom: 0.5em;
+}
+
+.xinliao-contact-action-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3em;
+}
+
+.xinliao-contact-action-item {
+  display: flex;
+  align-items: center;
+  gap: 0.8em;
+  width: 100%;
+  padding: 0.9em 1em;
+  background: transparent;
+  border: none;
+  border-radius: 0.8em;
+  cursor: pointer;
+  transition: background 0.15s ease;
+  text-align: left;
+}
+
+.xinliao-contact-action-item:hover {
+  background: rgba(125, 165, 255, 0.1);
+}
+
+.xinliao-contact-action-item:active {
+  background: rgba(125, 165, 255, 0.2);
+}
+
+.xinliao-contact-action-item.danger:hover {
+  background: rgba(239, 68, 68, 0.1);
+}
+
+.xinliao-contact-action-item.danger:active {
+  background: rgba(239, 68, 68, 0.2);
+}
+
+.xinliao-contact-action-icon {
+  font-size: 1.2em;
+  width: 1.5em;
+  text-align: center;
+}
+
+.xinliao-contact-action-text {
+  flex: 1;
+  font-size: 0.95em;
+  color: var(--text-primary);
+}
+
+.xinliao-contact-action-item.danger .xinliao-contact-action-text {
+  color: #ef4444;
+}
+
+.xinliao-contact-action-cancel {
+  width: 100%;
+  padding: 0.9em;
+  margin-top: 0.5em;
+  background: rgba(148, 163, 184, 0.1);
+  border: none;
+  border-radius: 0.8em;
+  font-size: 0.95em;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.xinliao-contact-action-cancel:hover {
+  background: rgba(148, 163, 184, 0.2);
+}
+
+.xinliao-contact-action-cancel:active {
+  background: rgba(148, 163, 184, 0.3);
+}
+
+/* ========== 移动到分组弹窗 ========== */
+.xinliao-move-group-popup {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.4);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 1001;
+  animation: fadeIn 0.15s ease;
+}
+
+.xinliao-move-group-popup.active {
+  display: flex;
+}
+
+.xinliao-move-group-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3em;
+  max-height: 15em;
+  overflow-y: auto;
+  margin-bottom: 1em;
+}
+
+.xinliao-move-group-item {
+  display: flex;
+  align-items: center;
+  gap: 0.6em;
+  width: 100%;
+  padding: 0.7em 0.9em;
+  background: rgba(248, 250, 252, 0.8);
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  border-radius: 0.7em;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  text-align: left;
+}
+
+.xinliao-move-group-item:hover {
+  background: rgba(125, 165, 255, 0.1);
+  border-color: rgba(125, 165, 255, 0.3);
+}
+
+.xinliao-move-group-item:active {
+  background: rgba(125, 165, 255, 0.2);
+}
+
+.xinliao-move-group-item.is-current {
+  background: rgba(125, 165, 255, 0.15);
+  border-color: rgba(125, 165, 255, 0.4);
+}
+
+.xinliao-move-group-item-icon {
+  font-size: 1em;
+}
+
+.xinliao-move-group-item-name {
+  flex: 1;
+  font-size: 0.9em;
+  color: var(--text-primary);
+}
+
+.xinliao-move-group-item-badge {
+  font-size: 0.75em;
+  color: #5b7bff;
+  background: rgba(125, 165, 255, 0.15);
+  padding: 0.15em 0.5em;
+  border-radius: 999px;
+}
+
+.xinliao-move-group-item.remove-from-group {
+  border-style: dashed;
+  color: var(--text-secondary);
+}
+
+.xinliao-move-group-item.remove-from-group .xinliao-move-group-item-name {
+  color: var(--text-secondary);
+}
+
+.xinliao-move-group-empty {
+  text-align: center;
+  color: var(--text-secondary);
+  font-size: 0.85em;
+  padding: 1.5em;
+}
+
+/* ========== 批量移动按钮 ========== */
+.xinliao-batch-move-btn {
+  padding: 0.4em 0.8em;
+  background: linear-gradient(135deg, #a1c4fd, #c2e9fb);
+  border: none;
+  border-radius: 0.5em;
+  font-size: 0.85em;
+  color: #1f2a44;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-weight: 500;
+}
+
+.xinliao-batch-move-btn:hover {
+  box-shadow: 0 0.2em 0.6em rgba(161, 196, 253, 0.4);
+}
+
+.xinliao-batch-move-btn:active {
+  transform: scale(0.96);
+}
+
+/* ========== 分组重命名按钮 ========== */
+.xinliao-group-rename {
+  width: 1.8em;
+  height: 1.8em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  border-radius: 50%;
+  color: #94a3b8;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+}
+
+.xinliao-group-rename:hover {
+  background: rgba(125, 165, 255, 0.15);
+  color: #5b7bff;
+}
+
+.xinliao-group-rename:active {
+  background: rgba(125, 165, 255, 0.25);
+}

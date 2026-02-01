@@ -47,6 +47,47 @@ const sortContacts = (contacts) => {
 };
 
 const CONTACTS_STORAGE_KEY = "xinliaoContacts";
+const GROUPS_STORAGE_KEY = "xinliaoContactGroups";
+
+// 联系人分组数据
+let contactGroups = [];
+
+/**
+ * 加载分组数据
+ */
+const loadStoredGroups = () => {
+  try {
+    const raw = localStorage.getItem(GROUPS_STORAGE_KEY);
+    if (!raw) return [];
+    return JSON.parse(raw);
+  } catch (error) {
+    return [];
+  }
+};
+
+/**
+ * 保存分组数据
+ */
+const saveGroups = (groups) => {
+  try {
+    localStorage.setItem(GROUPS_STORAGE_KEY, JSON.stringify(groups));
+  } catch (error) {
+    // 忽略存储失败
+  }
+};
+
+/**
+ * 创建新分组
+ */
+const createContactGroup = (name) => {
+  const group = {
+    id: `group-${Date.now()}-${Math.random().toString(16).slice(2)}`,
+    name: name,
+    contactIds: [],
+    createdAt: Date.now(),
+  };
+  return group;
+};
 
 const loadStoredContacts = () => {
   try {
@@ -241,10 +282,27 @@ export const initXinliaoView = async () => {
   // 世界书面板是否展开
   let isWorldbookExpanded = false;
 
+  /**
+   * 获取已分组的联系人 ID 集合
+   */
+  const getGroupedContactIds = () => {
+    const ids = new Set();
+    contactGroups.forEach((group) => {
+      group.contactIds.forEach((id) => ids.add(id));
+    });
+    return ids;
+  };
+
   const getFilteredContacts = () => {
     const keyword = contactKeyword.trim().toLowerCase();
-    if (!keyword) return contacts;
-    return contacts.filter((item) => {
+    // 获取已分组的联系人 ID
+    const groupedIds = getGroupedContactIds();
+    
+    // 过滤掉已分组的联系人（已分组的只在分组内显示）
+    let filtered = contacts.filter((item) => !groupedIds.has(item.id));
+    
+    if (!keyword) return filtered;
+    return filtered.filter((item) => {
       const name = String(item.name || "").toLowerCase();
       const persona = String(item.persona || "").toLowerCase();
       return name.includes(keyword) || persona.includes(keyword);
@@ -999,6 +1057,220 @@ export const initXinliaoView = async () => {
     exitContactSelectMode();
   };
 
+  // ========== 联系人操作菜单 ==========
+  const contactActionPopup = getEl("xinliaoContactActionPopup");
+  const contactActionTitle = getEl("xinliaoContactActionTitle");
+  const contactActionMove = getEl("xinliaoContactActionMove");
+  const contactActionDelete = getEl("xinliaoContactActionDelete");
+  const contactActionCancel = getEl("xinliaoContactActionCancel");
+  const moveGroupPopup = getEl("xinliaoMoveGroupPopup");
+  const moveGroupList = getEl("xinliaoMoveGroupList");
+  const moveGroupCancel = getEl("xinliaoMoveGroupCancel");
+
+  // 当前长按的联系人 ID
+  let longPressContactId = null;
+
+  /**
+   * 打开联系人操作菜单
+   */
+  const openContactActionPopup = (contactId) => {
+    longPressContactId = contactId;
+    const contact = contacts.find((c) => c.id === contactId);
+    if (contact && contactActionTitle) {
+      contactActionTitle.textContent = contact.name || "操作";
+    }
+    if (contactActionPopup) {
+      contactActionPopup.classList.add("active");
+    }
+  };
+
+  /**
+   * 关闭联系人操作菜单
+   */
+  const closeContactActionPopup = () => {
+    if (contactActionPopup) {
+      contactActionPopup.classList.remove("active");
+    }
+    longPressContactId = null;
+  };
+
+  /**
+   * 删除单个联系人
+   */
+  const deleteSingleContact = (contactId) => {
+    if (!contactId) return;
+    
+    const contact = contacts.find((c) => c.id === contactId);
+    if (!contact) return;
+    
+    if (!confirm(`确定要删除联系人"${contact.name}"吗？`)) return;
+
+    // 从所有分组中移除该联系人
+    contactGroups.forEach((group) => {
+      const idx = group.contactIds.indexOf(contactId);
+      if (idx !== -1) {
+        group.contactIds.splice(idx, 1);
+      }
+    });
+    saveGroups(contactGroups);
+
+    // 从联系人列表中移除
+    const index = contacts.findIndex((c) => c.id === contactId);
+    if (index !== -1) {
+      contacts.splice(index, 1);
+    }
+    saveContacts(contacts);
+    
+    updateContactsView();
+    renderGroupsList();
+  };
+
+  /**
+   * 查找联系人当前所在的分组
+   */
+  const findContactCurrentGroup = (contactId) => {
+    for (const group of contactGroups) {
+      if (group.contactIds.includes(contactId)) {
+        return group;
+      }
+    }
+    return null;
+  };
+
+  /**
+   * 打开移动到分组弹窗
+   */
+  const openMoveGroupPopup = (contactId) => {
+    if (!contactId || !moveGroupList) return;
+    
+    // 保存当前操作的联系人 ID
+    longPressContactId = contactId;
+
+    const currentGroup = findContactCurrentGroup(contactId);
+
+    // 渲染分组列表
+    let html = "";
+
+    // 如果当前在某个分组中，显示"移出分组"选项
+    if (currentGroup) {
+      html += `
+        <button class="xinliao-move-group-item remove-from-group" data-group-id="">
+          <span class="xinliao-move-group-item-icon">📤</span>
+          <span class="xinliao-move-group-item-name">移出当前分组</span>
+        </button>
+      `;
+    }
+
+    // 显示所有分组
+    if (contactGroups.length === 0 && !currentGroup) {
+      html = `<div class="xinliao-move-group-empty">暂无分组，请先创建分组</div>`;
+    } else {
+      contactGroups.forEach((group) => {
+        const isCurrent = currentGroup && currentGroup.id === group.id;
+        html += `
+          <button class="xinliao-move-group-item ${isCurrent ? "is-current" : ""}" data-group-id="${group.id}">
+            <span class="xinliao-move-group-item-icon">📁</span>
+            <span class="xinliao-move-group-item-name">${escapeHtml(group.name)}</span>
+            ${isCurrent ? '<span class="xinliao-move-group-item-badge">当前</span>' : ""}
+          </button>
+        `;
+      });
+    }
+
+    moveGroupList.innerHTML = html;
+
+    // 关闭操作菜单（不清除 longPressContactId），打开移动分组弹窗
+    if (contactActionPopup) {
+      contactActionPopup.classList.remove("active");
+    }
+    if (moveGroupPopup) {
+      moveGroupPopup.classList.add("active");
+    }
+  };
+
+  /**
+   * 关闭移动到分组弹窗
+   */
+  const closeMoveGroupPopup = () => {
+    if (moveGroupPopup) {
+      moveGroupPopup.classList.remove("active");
+    }
+  };
+
+  /**
+   * 移动联系人到指定分组
+   */
+  const moveContactToGroup = (targetGroupId) => {
+    if (!longPressContactId) return;
+
+    // 先从所有分组中移除该联系人
+    contactGroups.forEach((group) => {
+      const idx = group.contactIds.indexOf(longPressContactId);
+      if (idx !== -1) {
+        group.contactIds.splice(idx, 1);
+      }
+    });
+
+    // 如果目标分组不为空，添加到目标分组
+    if (targetGroupId) {
+      const targetGroup = contactGroups.find((g) => g.id === targetGroupId);
+      if (targetGroup) {
+        targetGroup.contactIds.push(longPressContactId);
+      }
+    }
+
+    saveGroups(contactGroups);
+    renderGroupsList();
+    closeMoveGroupPopup();
+    longPressContactId = null;
+  };
+
+  // 操作菜单事件绑定
+  contactActionCancel?.addEventListener("click", closeContactActionPopup);
+  
+  contactActionDelete?.addEventListener("click", () => {
+    const contactId = longPressContactId; // 先保存 ID
+    closeContactActionPopup();
+    deleteSingleContact(contactId);
+  });
+
+  contactActionMove?.addEventListener("click", () => {
+    const contactId = longPressContactId; // 先保存 ID
+    openMoveGroupPopup(contactId);
+  });
+
+  // 点击操作菜单背景关闭
+  contactActionPopup?.addEventListener("click", (e) => {
+    if (e.target === contactActionPopup) {
+      closeContactActionPopup();
+    }
+  });
+
+  // 移动分组弹窗事件
+  moveGroupCancel?.addEventListener("click", closeMoveGroupPopup);
+
+  moveGroupPopup?.addEventListener("click", (e) => {
+    if (e.target === moveGroupPopup) {
+      closeMoveGroupPopup();
+    }
+  });
+
+  moveGroupList?.addEventListener("click", (e) => {
+    const item = e.target.closest(".xinliao-move-group-item");
+    if (!item) return;
+    
+    const groupId = item.dataset.groupId;
+    const isBatch = item.dataset.batch === "true";
+    
+    if (isBatch) {
+      // 批量移动
+      batchMoveContactsToGroup(groupId);
+    } else {
+      // 单个移动
+      moveContactToGroup(groupId);
+    }
+  });
+
   // 联系人列表点击事件
   contactsList?.addEventListener("click", (event) => {
     const item = event.target.closest(".xinliao-contact-item");
@@ -1017,7 +1289,7 @@ export const initXinliaoView = async () => {
     }
   });
 
-  // 长按进入选择模式
+  // 长按显示操作菜单
   let contactLongPressTimer = null;
   contactsList?.addEventListener("pointerdown", (event) => {
     const item = event.target.closest(".xinliao-contact-item");
@@ -1025,8 +1297,7 @@ export const initXinliaoView = async () => {
 
     const contactId = item.dataset.id;
     contactLongPressTimer = setTimeout(() => {
-      enterContactSelectMode();
-      toggleContactSelect(contactId);
+      openContactActionPopup(contactId);
     }, 500);
   });
 
@@ -1044,9 +1315,88 @@ export const initXinliaoView = async () => {
     }
   });
 
+  // 批量操作栏元素
+  const contactsBatchMoveBtn = getEl("xinliaoContactsBatchMoveBtn");
+
+  /**
+   * 批量移动联系人到分组
+   */
+  const openBatchMovePopup = () => {
+    if (selectedContactIds.size === 0 || !moveGroupList) return;
+
+    // 渲染分组列表
+    let html = "";
+
+    // 显示"移出分组"选项
+    html += `
+      <button class="xinliao-move-group-item remove-from-group" data-group-id="" data-batch="true">
+        <span class="xinliao-move-group-item-icon">📤</span>
+        <span class="xinliao-move-group-item-name">移出分组</span>
+      </button>
+    `;
+
+    // 显示所有分组
+    if (contactGroups.length === 0) {
+      html += `<div class="xinliao-move-group-empty">暂无分组，请先创建分组</div>`;
+    } else {
+      contactGroups.forEach((group) => {
+        html += `
+          <button class="xinliao-move-group-item" data-group-id="${group.id}" data-batch="true">
+            <span class="xinliao-move-group-item-icon">📁</span>
+            <span class="xinliao-move-group-item-name">${escapeHtml(group.name)}</span>
+          </button>
+        `;
+      });
+    }
+
+    moveGroupList.innerHTML = html;
+
+    if (moveGroupPopup) {
+      moveGroupPopup.classList.add("active");
+    }
+  };
+
+  /**
+   * 批量移动联系人到指定分组
+   */
+  const batchMoveContactsToGroup = (targetGroupId) => {
+    if (selectedContactIds.size === 0) return;
+
+    const idsToMove = Array.from(selectedContactIds);
+
+    // 先从所有分组中移除这些联系人
+    contactGroups.forEach((group) => {
+      idsToMove.forEach((id) => {
+        const idx = group.contactIds.indexOf(id);
+        if (idx !== -1) {
+          group.contactIds.splice(idx, 1);
+        }
+      });
+    });
+
+    // 如果目标分组不为空，添加到目标分组
+    if (targetGroupId) {
+      const targetGroup = contactGroups.find((g) => g.id === targetGroupId);
+      if (targetGroup) {
+        idsToMove.forEach((id) => {
+          if (!targetGroup.contactIds.includes(id)) {
+            targetGroup.contactIds.push(id);
+          }
+        });
+      }
+    }
+
+    saveGroups(contactGroups);
+    renderGroupsList();
+    updateContactsView();
+    closeMoveGroupPopup();
+    exitContactSelectMode();
+  };
+
   // 删除栏按钮事件
   contactsDeleteBtn?.addEventListener("click", deleteSelectedContacts);
   contactsDeleteCancel?.addEventListener("click", exitContactSelectMode);
+  contactsBatchMoveBtn?.addEventListener("click", openBatchMovePopup);
 
   // 切换联系人置顶状态
   const toggleContactPin = (contactId) => {
@@ -1108,8 +1458,223 @@ export const initXinliaoView = async () => {
     },
   });
 
+  // ========== 联系人分组功能 ==========
+  const newGroupBtn = getEl("xinliaoNewGroupBtn");
+  const groupsList = getEl("xinliaoGroupsList");
+  const groupPopup = getEl("xinliaoGroupPopup");
+  const groupNameInput = getEl("xinliaoNewGroupNameInput");
+  const groupCancel = getEl("xinliaoNewGroupCancel");
+  const groupConfirmBtn = getEl("xinliaoNewGroupConfirm");
+
+  // 加载分组数据
+  contactGroups = loadStoredGroups();
+
+  // 展开的联系人分组 ID
+  let expandedContactGroupIds = new Set();
+
+  /**
+   * 渲染分组列表
+   */
+  const renderGroupsList = () => {
+    if (!groupsList) return;
+
+    if (!contactGroups.length) {
+      groupsList.innerHTML = "";
+      return;
+    }
+
+    groupsList.innerHTML = contactGroups.map((group) => {
+      const isExpanded = expandedContactGroupIds.has(group.id);
+      const groupContacts = contacts.filter((c) => group.contactIds.includes(c.id));
+      const count = groupContacts.length;
+
+      return `
+        <div class="xinliao-group-item ${isExpanded ? "is-expanded" : ""}" data-group-id="${group.id}">
+          <div class="xinliao-group-header">
+            <span class="xinliao-group-arrow">›</span>
+            <span class="xinliao-group-name">${escapeHtml(group.name)}</span>
+            <span class="xinliao-group-count">(${count})</span>
+            <button class="xinliao-group-rename" data-group-id="${group.id}" aria-label="重命名分组">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+              </svg>
+            </button>
+            <button class="xinliao-group-delete" data-group-id="${group.id}" aria-label="删除分组">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="3 6 5 6 21 6"/>
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+              </svg>
+            </button>
+          </div>
+          <div class="xinliao-group-content">
+            ${groupContacts.length > 0 
+              ? groupContacts.map((contact) => `
+                  <button class="xinliao-group-contact" data-contact-id="${contact.id}">
+                    <div class="xinliao-avatar">${buildAvatarMarkup(contact.avatar)}</div>
+                    <span class="xinliao-group-contact-name">${escapeHtml(contact.name)}</span>
+                  </button>
+                `).join("")
+              : `<div class="xinliao-group-empty">暂无成员</div>`
+            }
+          </div>
+        </div>
+      `;
+    }).join("");
+  };
+
+  /**
+   * 切换分组展开状态
+   */
+  const toggleContactGroupExpand = (groupId) => {
+    if (expandedContactGroupIds.has(groupId)) {
+      expandedContactGroupIds.delete(groupId);
+    } else {
+      expandedContactGroupIds.add(groupId);
+    }
+    renderGroupsList();
+  };
+
+  /**
+   * 打开新建分组弹窗
+   */
+  const openGroupPopup = () => {
+    if (groupPopup) {
+      groupPopup.classList.add("active");
+      if (groupNameInput) {
+        groupNameInput.value = "";
+        groupNameInput.focus();
+      }
+    }
+  };
+
+  /**
+   * 关闭新建分组弹窗
+   */
+  const closeGroupPopup = () => {
+    if (groupPopup) {
+      groupPopup.classList.remove("active");
+    }
+  };
+
+  /**
+   * 确认创建分组
+   */
+  const confirmCreateGroup = () => {
+    const name = groupNameInput?.value.trim();
+    if (!name) {
+      groupNameInput?.focus();
+      return;
+    }
+
+    const newGroup = createContactGroup(name);
+    contactGroups.push(newGroup);
+    saveGroups(contactGroups);
+    renderGroupsList();
+    closeGroupPopup();
+  };
+
+  /**
+   * 删除分组
+   */
+  const deleteContactGroup = (groupId) => {
+    if (!confirm("确定要删除此分组吗？分组内的联系人不会被删除。")) return;
+
+    const index = contactGroups.findIndex((g) => g.id === groupId);
+    if (index !== -1) {
+      contactGroups.splice(index, 1);
+      saveGroups(contactGroups);
+      renderGroupsList();
+    }
+  };
+
+  // 新建分组按钮点击
+  newGroupBtn?.addEventListener("click", openGroupPopup);
+
+  // 弹窗取消按钮
+  groupCancel?.addEventListener("click", closeGroupPopup);
+
+  // 弹窗确认按钮
+  groupConfirmBtn?.addEventListener("click", confirmCreateGroup);
+
+  // 弹窗输入框回车确认
+  groupNameInput?.addEventListener("keypress", (e) => {
+    if (e.key === "Enter") {
+      confirmCreateGroup();
+    }
+  });
+
+  // 点击弹窗背景关闭
+  groupPopup?.addEventListener("click", (e) => {
+    if (e.target === groupPopup) {
+      closeGroupPopup();
+    }
+  });
+
+  /**
+   * 重命名分组
+   */
+  const renameContactGroup = (groupId) => {
+    const group = contactGroups.find((g) => g.id === groupId);
+    if (!group) return;
+
+    const newName = prompt("请输入新的分组名称：", group.name);
+    if (newName === null) return; // 用户取消
+    
+    const trimmedName = newName.trim();
+    if (!trimmedName) {
+      alert("分组名称不能为空");
+      return;
+    }
+
+    group.name = trimmedName;
+    saveGroups(contactGroups);
+    renderGroupsList();
+  };
+
+  // 分组列表点击事件
+  groupsList?.addEventListener("click", (e) => {
+    // 点击重命名按钮
+    const renameBtn = e.target.closest(".xinliao-group-rename");
+    if (renameBtn) {
+      e.stopPropagation();
+      const groupId = renameBtn.dataset.groupId;
+      renameContactGroup(groupId);
+      return;
+    }
+
+    // 点击删除按钮
+    const deleteBtn = e.target.closest(".xinliao-group-delete");
+    if (deleteBtn) {
+      e.stopPropagation();
+      const groupId = deleteBtn.dataset.groupId;
+      deleteContactGroup(groupId);
+      return;
+    }
+
+    // 点击分组内的联系人
+    const contactBtn = e.target.closest(".xinliao-group-contact");
+    if (contactBtn) {
+      const contactId = contactBtn.dataset.contactId;
+      openDetail(contactId);
+      return;
+    }
+
+    // 点击分组头部展开/收起
+    const header = e.target.closest(".xinliao-group-header");
+    if (header) {
+      const groupItem = header.closest(".xinliao-group-item");
+      const groupId = groupItem?.dataset.groupId;
+      if (groupId) {
+        toggleContactGroupExpand(groupId);
+      }
+      return;
+    }
+  });
+
   // 初始渲染
   updateContactsView();
+  renderGroupsList();
 
   bindXinliaoApp();
   setActiveTab(tabs[0]?.id || "messages");

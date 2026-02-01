@@ -19,4 +19,7 @@ export const DEFAULT_SOUND_SETTINGS = {
     customDataUrl: "",
     customName: "",
   },
+  music: {
+    volume: 0.8,
+  },
 };

@@ -27,6 +27,8 @@ import {
   loadSettingFromIDB
 } from '../storage/indexedDB.js';
 
+import { getMusicVolume } from './soundSettings.js';
+
 // 状态
 let isPlaying = false;
 let currentSong = null;
@@ -35,6 +37,7 @@ let playlist = [];
 let audioElement = null;
 let currentTab = 'local';
 let showLyrics = false;
+let savedDiscDisplay = ''; // 保存唱片的原始 display 状态
 // 播放模式: 'list' 列表循环, 'single' 单曲循环, 'shuffle' 随机播放
 let playMode = 'list';
 // 缓存在线搜索结果
@@ -58,9 +61,17 @@ export async function initMusicView() {
 
   // 创建音频元素
   audioElement = new Audio();
+  audioElement.volume = getMusicVolume(); // 应用保存的音量设置
   audioElement.addEventListener('timeupdate', updateProgress);
   audioElement.addEventListener('ended', handleSongEnd);
   audioElement.addEventListener('loadedmetadata', updateTotalTime);
+  
+  // 监听音量变化事件
+  window.addEventListener('musicVolumeChange', (e) => {
+    if (audioElement) {
+      audioElement.volume = e.detail.volume;
+    }
+  });
 
   // 绑定返回按钮
   const backBtn = document.getElementById('musicBack');
@@ -98,10 +109,10 @@ export async function initMusicView() {
     modeBtn.addEventListener('click', togglePlayMode);
   }
 
-  // 绑定唱片点击打开外观设置
+  // 绑定唱片点击切换歌词视图
   const discLarge = document.getElementById('musicDiscLarge');
   if (discLarge) {
-    discLarge.addEventListener('click', openMusicAppearanceSettings);
+    discLarge.addEventListener('click', toggleLyricsView);
   }
 
   // 初始化搜索面板
@@ -379,6 +390,54 @@ function updatePlayModeButton() {
   };
   
   modeBtn.innerHTML = icons[playMode];
+}
+
+/**
+ * 切换歌词视图
+ */
+function toggleLyricsView() {
+  showLyrics = !showLyrics;
+  const content = document.querySelector('.music-content');
+  const disc = document.getElementById('musicDiscLarge');
+  
+  if (showLyrics) {
+    // 隐藏唱片，显示歌词
+    if (disc) {
+      savedDiscDisplay = disc.style.display;
+      disc.style.display = 'none';
+    }
+    
+    // 创建或显示歌词容器
+    let lyricsContainer = document.querySelector('.music-lyrics-container');
+    if (!lyricsContainer && content) {
+      lyricsContainer = document.createElement('div');
+      lyricsContainer.className = 'music-lyrics-container';
+      lyricsContainer.innerHTML = `
+        <div class="music-lyrics-content">
+          <div class="music-lyrics-text">${currentSong?.lyrics || '暂无歌词'}</div>
+        </div>
+      `;
+      // 点击歌词容器返回唱片视图
+      lyricsContainer.addEventListener('click', toggleLyricsView);
+      content.insertBefore(lyricsContainer, content.firstChild);
+    } else if (lyricsContainer) {
+      lyricsContainer.style.display = '';
+      // 更新歌词内容
+      const lyricsText = lyricsContainer.querySelector('.music-lyrics-text');
+      if (lyricsText) {
+        lyricsText.textContent = currentSong?.lyrics || '暂无歌词';
+      }
+    }
+  } else {
+    // 显示唱片，隐藏歌词
+    if (disc) {
+      disc.style.display = savedDiscDisplay;
+    }
+    const lyricsContainer = document.querySelector('.music-lyrics-container');
+    if (lyricsContainer) {
+      lyricsContainer.style.display = 'none';
+    }
+  }
 }
 
 /**

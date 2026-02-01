@@ -10,10 +10,19 @@ const getStoredSettings = () => {
     return {
       ui: { ...DEFAULT_SOUND_SETTINGS.ui, ...parsed.ui },
       message: { ...DEFAULT_SOUND_SETTINGS.message, ...parsed.message },
+      music: { ...DEFAULT_SOUND_SETTINGS.music, ...parsed.music },
     };
   } catch (err) {
     return { ...DEFAULT_SOUND_SETTINGS };
   }
+};
+
+/**
+ * 获取音乐音量设置
+ */
+export const getMusicVolume = () => {
+  const settings = getStoredSettings();
+  return settings.music?.volume ?? DEFAULT_SOUND_SETTINGS.music.volume;
 };
 
 const saveSettings = (settings) => {
@@ -84,13 +93,47 @@ const bindSection = (prefix, settings, audioType) => {
   });
 };
 
+const bindMusicVolumeSection = (settings) => {
+  const volume = document.getElementById("musicSoundVolume");
+  const volumeValue = document.getElementById("musicSoundVolumeValue");
+
+  if (!volume || !volumeValue) {
+    return;
+  }
+
+  volume.value = settings.volume;
+  volumeValue.textContent = formatVolume(settings.volume);
+
+  const updateSettings = () => {
+    const current = getStoredSettings();
+    current.music = {
+      ...current.music,
+      volume: Number(volume.value),
+    };
+    saveSettings(current);
+    
+    // 触发自定义事件，通知音乐播放器更新音量
+    window.dispatchEvent(new CustomEvent('musicVolumeChange', { 
+      detail: { volume: Number(volume.value) } 
+    }));
+  };
+
+  volume.addEventListener("input", () => {
+    volumeValue.textContent = formatVolume(Number(volume.value));
+  });
+
+  volume.addEventListener("change", updateSettings);
+};
+
 const setupDetailNavigation = () => {
   const soundSection = document.getElementById("soundSettings");
   const mainList = document.getElementById("soundSettingsMain");
   const uiEntry = document.getElementById("uiSoundEntry");
   const msgEntry = document.getElementById("msgSoundEntry");
+  const musicEntry = document.getElementById("musicSoundEntry");
   const uiDetail = document.getElementById("uiSoundDetail");
   const msgDetail = document.getElementById("msgSoundDetail");
+  const musicDetail = document.getElementById("musicSoundDetail");
   const backButton = document.getElementById("settingsBack");
   const title = document.getElementById("settingsTitle");
   const entryButton = document.getElementById("soundSettingsEntry");
@@ -112,6 +155,7 @@ const setupDetailNavigation = () => {
     mainList.classList.add("active");
     uiDetail.classList.remove("active");
     msgDetail.classList.remove("active");
+    if (musicDetail) musicDetail.classList.remove("active");
     soundSection.dataset.detail = "list";
     if (soundSection.classList.contains("active")) {
       title.textContent = "提示音设置";
@@ -122,14 +166,23 @@ const setupDetailNavigation = () => {
     mainList.classList.remove("active");
     uiDetail.classList.toggle("active", type === "ui");
     msgDetail.classList.toggle("active", type === "message");
+    if (musicDetail) musicDetail.classList.toggle("active", type === "music");
     soundSection.dataset.detail = "detail";
     if (soundSection.classList.contains("active")) {
-      title.textContent = type === "ui" ? "UI 提示音" : "消息提示音";
+      const titles = {
+        ui: "UI 提示音",
+        message: "消息提示音",
+        music: "音乐播放音量"
+      };
+      title.textContent = titles[type] || "提示音设置";
     }
   };
 
   uiEntry.addEventListener("click", () => showDetail("ui"));
   msgEntry.addEventListener("click", () => showDetail("message"));
+  if (musicEntry) {
+    musicEntry.addEventListener("click", () => showDetail("music"));
+  }
 
   entryButton?.addEventListener("click", showList);
 
@@ -154,5 +207,6 @@ export const initSoundSettings = () => {
   const settings = getStoredSettings();
   bindSection("ui", settings.ui, "ui");
   bindSection("msg", settings.message, "message");
+  bindMusicVolumeSection(settings.music);
   setupDetailNavigation();
 };

@@ -1,7 +1,7 @@
 import { getAudioManager } from "./audioManager.js";
 
 const CLICKABLE_SELECTOR =
-  "button, .app, .player-btn, .settings-item, .settings-link, input, select, .switch";
+  "button, .app, .player-btn, .settings-item, .settings-link, input, select, .switch, .phone-app, .mask-item, .mask-avatar-btn, .mask-popup-btn";
 
 const isClickInsideDevice = (target) => {
   return target.closest(".device");

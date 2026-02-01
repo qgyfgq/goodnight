@@ -21,6 +21,7 @@
   <link rel="stylesheet" href="css/beautify.css" />
   <link rel="stylesheet" href="css/music/layout.css" />
   <link rel="stylesheet" href="css/music/search.css" />
+  <link rel="stylesheet" href="css/home/layout.css" />
 </head>
 <body>
   <div class="page">
@@ -263,6 +264,10 @@
                   <span class="settings-icon icon-bell"></span>
                   <span class="settings-text">消息提示音</span>
                 </button>
+                <button class="settings-item settings-link" id="musicSoundEntry" aria-label="音乐播放音量">
+                  <span class="settings-icon icon-music"></span>
+                  <span class="settings-text">音乐播放音量</span>
+                </button>
               </div>
             </div>
 
@@ -329,6 +334,18 @@
                 </div>
               </div>
             </div>
+
+            <div class="sound-settings-detail" id="musicSoundDetail">
+              <div class="settings-card">
+                <h3 class="settings-subtitle">🎵 音乐播放音量</h3>
+                <div class="field">
+                  <label for="musicSoundVolume">音量</label>
+                  <input id="musicSoundVolume" type="range" min="0" max="1" step="0.01" />
+                  <div class="range-value" id="musicSoundVolumeValue">0%</div>
+                </div>
+                <p class="field-hint">调整音乐播放器的音量大小</p>
+              </div>
+            </div>
           </div>
         </section>
 
@@ -388,6 +405,7 @@
               <div class="xinliao-delete-bar is-hidden" id="xinliaoContactsDeleteBar">
                 <button class="xinliao-delete-cancel" id="xinliaoContactsDeleteCancel">取消</button>
                 <span class="xinliao-delete-info">已选择 <span id="xinliaoContactsDeleteCount">0</span> 个</span>
+                <button class="xinliao-batch-move-btn" id="xinliaoContactsBatchMoveBtn">移动</button>
                 <button class="xinliao-delete-btn" id="xinliaoContactsDeleteBtn">删除</button>
               </div>
               <div class="xinliao-search">
@@ -398,6 +416,19 @@
                   autocomplete="off"
                 />
               </div>
+              <!-- 新建分组按钮 -->
+              <button class="xinliao-new-group-btn" id="xinliaoNewGroupBtn">
+                <span class="xinliao-new-group-icon">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                    <line x1="12" y1="8" x2="12" y2="16"/>
+                    <line x1="8" y1="12" x2="16" y2="12"/>
+                  </svg>
+                </span>
+                <span class="xinliao-new-group-text">新建分组</span>
+              </button>
+              <!-- 分组列表 -->
+              <div class="xinliao-groups-list" id="xinliaoGroupsList"></div>
               <div class="xinliao-contact-actions is-hidden" id="xinliaoContactActions">
                 <div class="xinliao-action-row">
                   <button class="xinliao-btn secondary" id="xinliaoShowCreate">创建角色</button>
@@ -483,6 +514,52 @@
           </div>
 
           <div class="xinliao-tabbar" id="xinliaoTabs"></div>
+
+          <!-- 新建分组弹窗 -->
+          <div class="xinliao-group-popup" id="xinliaoGroupPopup">
+            <div class="xinliao-group-popup-card">
+              <div class="xinliao-group-popup-title">新建分组</div>
+              <div class="xinliao-group-popup-field">
+                <label for="xinliaoNewGroupNameInput">分组名称</label>
+                <input type="text" id="xinliaoNewGroupNameInput" placeholder="请输入分组名称" />
+              </div>
+              <div class="xinliao-group-popup-actions">
+                <button class="xinliao-group-popup-btn ghost" id="xinliaoNewGroupCancel">取消</button>
+                <button class="xinliao-group-popup-btn primary" id="xinliaoNewGroupConfirm">确定</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- 联系人操作菜单弹窗 -->
+          <div class="xinliao-contact-action-popup" id="xinliaoContactActionPopup">
+            <div class="xinliao-contact-action-card">
+              <div class="xinliao-contact-action-title" id="xinliaoContactActionTitle">操作</div>
+              <div class="xinliao-contact-action-list">
+                <button class="xinliao-contact-action-item" id="xinliaoContactActionMove">
+                  <span class="xinliao-contact-action-icon">📁</span>
+                  <span class="xinliao-contact-action-text">移动到分组</span>
+                </button>
+                <button class="xinliao-contact-action-item danger" id="xinliaoContactActionDelete">
+                  <span class="xinliao-contact-action-icon">🗑️</span>
+                  <span class="xinliao-contact-action-text">删除联系人</span>
+                </button>
+              </div>
+              <button class="xinliao-contact-action-cancel" id="xinliaoContactActionCancel">取消</button>
+            </div>
+          </div>
+
+          <!-- 移动到分组弹窗 -->
+          <div class="xinliao-move-group-popup" id="xinliaoMoveGroupPopup">
+            <div class="xinliao-group-popup-card">
+              <div class="xinliao-group-popup-title">移动到分组</div>
+              <div class="xinliao-move-group-list" id="xinliaoMoveGroupList">
+                <!-- 分组列表将动态生成 -->
+              </div>
+              <div class="xinliao-group-popup-actions">
+                <button class="xinliao-group-popup-btn ghost" id="xinliaoMoveGroupCancel">取消</button>
+              </div>
+            </div>
+          </div>
 
           <!-- 联系人详情面板 -->
           <div class="xinliao-contact-detail is-hidden" id="xinliaoContactDetail">
@@ -892,6 +969,82 @@
               </svg>
             </button>
             <input type="file" id="musicUploadInput" class="music-upload-input" accept="audio/*" multiple />
+          </div>
+        </section>
+
+        <!-- 家园视图 -->
+        <section class="home-garden-view" id="homeGardenView">
+          <div class="garden-scene">
+            <!-- 简化的房间场景 - 等距视角小房间 -->
+            <div class="garden-room-image">
+              <img src="assets/images/ChatGPT Image 2026年2月1日 18_48_32.png" alt="家园房间" />
+            </div>
+            
+            <!-- 手机按钮 -->
+            <button class="garden-phone-btn" id="gardenPhoneBtn">
+              <div class="garden-phone-icon"></div>
+              <span class="garden-phone-text">手机</span>
+            </button>
+          </div>
+          
+          <!-- 手机界面 -->
+          <div class="garden-phone-view" id="gardenPhoneView">
+            <div class="phone-frame">
+              <div class="phone-top">
+                <div class="phone-speaker"></div>
+              </div>
+              <div class="phone-screen">
+                <div class="phone-status-bar">
+                  <span class="phone-wifi">📶</span>
+                  <div class="phone-battery"></div>
+                </div>
+                <div class="phone-weather">
+                  <div class="phone-sun"></div>
+                  <div class="phone-date" id="phoneDate">2月1日</div>
+                </div>
+                <div class="phone-apps">
+                  <div class="phone-app" data-app="mask">
+                    <div class="phone-app-icon app-mask">🎭</div>
+                    <div class="phone-app-name">面具</div>
+                  </div>
+                  <div class="phone-app" data-app="asset">
+                    <div class="phone-app-icon app-asset">💰</div>
+                    <div class="phone-app-name">资产</div>
+                  </div>
+                  <div class="phone-app" data-app="emoji">
+                    <div class="phone-app-icon app-emoji">😊</div>
+                    <div class="phone-app-name">表情包</div>
+                  </div>
+                  <div class="phone-app" data-app="search">
+                    <div class="phone-app-icon app-search">🔍</div>
+                    <div class="phone-app-name">查手机</div>
+                  </div>
+                  <div class="phone-app" data-app="home">
+                    <div class="phone-app-icon app-home">🏡</div>
+                    <div class="phone-app-name">首页</div>
+                  </div>
+                  <div class="phone-app" data-app="reverse">
+                    <div class="phone-app-icon app-reverse">🔎</div>
+                    <div class="phone-app-name">反查手机</div>
+                  </div>
+                  <div class="phone-app" data-app="friend">
+                    <div class="phone-app-icon app-friend">🏘️</div>
+                    <div class="phone-app-name">好友的家</div>
+                  </div>
+                  <div class="phone-app" data-app="ikea">
+                    <div class="phone-app-icon app-ikea">🛋️</div>
+                    <div class="phone-app-name">宜家家居</div>
+                  </div>
+                  <div class="phone-app" data-app="connect">
+                    <div class="phone-app-icon app-connect">🔗</div>
+                    <div class="phone-app-name">联机</div>
+                  </div>
+                </div>
+              </div>
+              <div class="phone-bottom">
+                <button class="phone-home-btn" id="phoneHomeBtn"></button>
+              </div>
+            </div>
           </div>
         </section>
 

@@ -259,6 +259,29 @@
   border-radius: 0.5em;
 }
 
+/* 音乐播放音量 */
+.icon-music {
+  background: linear-gradient(135deg, #f093fb, #f5576c);
+}
+
+.icon-music::before {
+  width: 40%;
+  height: 40%;
+  top: 20%;
+  left: 30%;
+  background: rgba(255, 255, 255, 0.92);
+  border-radius: 50%;
+}
+
+.icon-music::after {
+  width: 20%;
+  height: 45%;
+  bottom: 18%;
+  right: 28%;
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 0.2em;
+}
+
 /* API 详情表单 */
 .api-settings .settings-card {
   background: rgba(255, 255, 255, 0.78);
