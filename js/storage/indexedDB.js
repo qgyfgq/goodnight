@@ -4,7 +4,7 @@
  */
 
 const DB_NAME = 'goodnightDB';
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 
 // 存储对象名称
 const STORES = {
@@ -14,6 +14,7 @@ const STORES = {
   moments: 'moments',
   worldbook: 'worldbook',
   settings: 'settings',
+  masks: 'masks',
 };
 
 let db = null;
@@ -24,9 +25,24 @@ let db = null;
  */
 export const initDB = () => {
   return new Promise((resolve, reject) => {
+    // 如果已有数据库连接，检查版本是否需要升级
     if (db) {
-      resolve(db);
-      return;
+      // 检查当前数据库版本
+      if (db.version < DB_VERSION) {
+        // 需要升级，关闭当前连接
+        db.close();
+        db = null;
+      } else {
+        // 检查是否有 masks 存储
+        if (db.objectStoreNames.contains(STORES.masks)) {
+          resolve(db);
+          return;
+        } else {
+          // 没有 masks 存储，需要重新打开以触发升级
+          db.close();
+          db = null;
+        }
+      }
     }
 
     const request = indexedDB.open(DB_NAME, DB_VERSION);
@@ -38,12 +54,13 @@ export const initDB = () => {
 
     request.onsuccess = () => {
       db = request.result;
-      console.log('IndexedDB 初始化成功');
+      console.log('IndexedDB 初始化成功，版本:', db.version);
       resolve(db);
     };
 
     request.onupgradeneeded = (event) => {
       const database = event.target.result;
+      console.log('IndexedDB 升级中，从版本', event.oldVersion, '到', event.newVersion);
 
       // 创建会话列表存储
       if (!database.objectStoreNames.contains(STORES.chats)) {
@@ -76,7 +93,13 @@ export const initDB = () => {
         database.createObjectStore(STORES.settings, { keyPath: 'key' });
       }
 
-      console.log('IndexedDB 数据库结构已创建');
+      // 创建面具存储（版本 2 新增）
+      if (!database.objectStoreNames.contains(STORES.masks)) {
+        database.createObjectStore(STORES.masks, { keyPath: 'id' });
+        console.log('已创建 masks 存储');
+      }
+
+      console.log('IndexedDB 数据库结构已创建/更新');
     };
   });
 };
@@ -86,7 +109,7 @@ export const initDB = () => {
  * @returns {Promise<IDBDatabase>}
  */
 const getDB = async () => {
-  if (!db) {
+  if (!db || !db.objectStoreNames.contains(STORES.masks)) {
     await initDB();
   }
   return db;
@@ -338,6 +361,68 @@ export const saveSettingToIDB = async (key, value) => {
 export const loadSettingFromIDB = async (key, defaultValue = null) => {
   const result = await getItem(STORES.settings, key);
   return result?.value ?? defaultValue;
+};
+
+// ========== 面具专用方法 ==========
+
+/**
+ * 保存面具列表
+ * @param {Array} masks - 面具列表
+ * @returns {Promise<void>}
+ */
+export const saveMasksToIDB = async (masks) => {
+  const database = await getDB();
+  return new Promise((resolve, reject) => {
+    const transaction = database.transaction([STORES.masks], 'readwrite');
+    const store = transaction.objectStore(STORES.masks);
+
+    const clearRequest = store.clear();
+    clearRequest.onsuccess = () => {
+      if (masks.length === 0) {
+        resolve();
+        return;
+      }
+
+      let completed = 0;
+      masks.forEach((mask) => {
+        const addRequest = store.put(mask);
+        addRequest.onsuccess = () => {
+          completed++;
+          if (completed === masks.length) {
+            resolve();
+          }
+        };
+        addRequest.onerror = () => reject(addRequest.error);
+      });
+    };
+    clearRequest.onerror = () => reject(clearRequest.error);
+  });
+};
+
+/**
+ * 加载面具列表
+ * @returns {Promise<Array>}
+ */
+export const loadMasksFromIDB = async () => {
+  return getAllItems(STORES.masks);
+};
+
+/**
+ * 保存单个面具
+ * @param {Object} mask - 面具对象
+ * @returns {Promise<void>}
+ */
+export const saveMaskToIDB = async (mask) => {
+  return saveItem(STORES.masks, mask);
+};
+
+/**
+ * 删除单个面具
+ * @param {string} maskId - 面具 ID
+ * @returns {Promise<void>}
+ */
+export const deleteMaskFromIDB = async (maskId) => {
+  return deleteItem(STORES.masks, maskId);
 };
 
 // ========== 数据迁移 ==========

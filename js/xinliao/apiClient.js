@@ -1,5 +1,6 @@
 import { SYSTEM_PROMPTS, APP_SYSTEM_PROMPT } from "./prompts.js";
 import { loadWorldbookData } from "../worldbook/worldbookData.js";
+import { loadMasksFromIDB } from "../storage/indexedDB.js";
 
 const STORAGE_KEY = "apiProfiles";
 const ACTIVE_PROFILE_KEY = "apiActiveProfile";
@@ -101,13 +102,16 @@ export const requestChatReply = async ({ contact, chatHistory = [], userMessage 
 
   // 构建角色设定（char 人设）
   const charPrompt = buildCharPrompt(contact);
+  
+  // 构建用户人设（基于默认面具）
+  const userPersonaPrompt = await buildUserPersonaPrompt();
 
   // 构建系统提示词
   const systemPrompt = `${APP_SYSTEM_PROMPT}
 
 【角色设定】
 ${charPrompt}
-
+${userPersonaPrompt}
 【输出格式要求】
 你必须以 JSON 数组格式输出回复，每条消息是数组中的一个字符串。
 示例格式：["消息1", "消息2", "消息3"]
@@ -220,6 +224,47 @@ const parseMultipleMessages = (content) => {
     // 最后兜底：当作单条消息
     return [content];
   }
+};
+
+/**
+ * 获取默认面具（用户人设）
+ * @returns {Promise<Object|null>} 默认面具对象，如果没有则返回 null
+ */
+export const getDefaultMask = async () => {
+  try {
+    const maskList = await loadMasksFromIDB();
+    if (!Array.isArray(maskList) || maskList.length === 0) return null;
+    
+    // 查找设为默认的面具
+    const defaultMask = maskList.find(m => m.isDefault === true);
+    if (defaultMask) return defaultMask;
+    
+    // 如果没有设为默认的，返回第一个面具
+    return maskList[0];
+  } catch (e) {
+    console.warn("读取面具数据失败", e);
+    return null;
+  }
+};
+
+/**
+ * 构建用户人设提示词（基于默认面具）
+ * @returns {Promise<string>} 用户人设提示词
+ */
+const buildUserPersonaPrompt = async () => {
+  const mask = await getDefaultMask();
+  if (!mask) return "";
+  
+  let prompt = `\n【用户人设】\n`;
+  prompt += `用户名：${mask.name}\n`;
+  
+  if (mask.description) {
+    prompt += `用户描述：${mask.description}\n`;
+  }
+  
+  prompt += `\n注意：在对话中，你要把用户当作上述人设来互动，用户发送的消息代表这个角色在说话。\n`;
+  
+  return prompt;
 };
 
 /**

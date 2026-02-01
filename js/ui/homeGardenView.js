@@ -3,6 +3,8 @@
  * 管理家园界面和手机子界面
  */
 
+import { saveMasksToIDB, loadMasksFromIDB, deleteMaskFromIDB } from '../storage/indexedDB.js';
+
 /**
  * 初始化家园视图
  */
@@ -474,7 +476,7 @@ function closeFullscreenMaskEditPage(view) {
 /**
  * 保存全屏面具
  */
-function saveFullscreenMask(view) {
+async function saveFullscreenMask(view) {
   const nameInput = view.querySelector('#fullscreenMaskNameInput');
   const descInput = view.querySelector('#fullscreenMaskDescInput');
   const defaultSwitch = view.querySelector('#fullscreenMaskDefaultSwitch');
@@ -509,21 +511,21 @@ function saveFullscreenMask(view) {
     maskList.push(maskData);
   }
   
-  saveMaskListToStorage();
-  loadFullscreenMaskList(view);
+  await saveMaskListToStorage();
+  await loadFullscreenMaskList(view);
   closeFullscreenMaskEditPage(view);
 }
 
 /**
  * 删除全屏面具
  */
-function deleteFullscreenMask(view) {
+async function deleteFullscreenMask(view) {
   if (!currentEditingMask) return;
   
   if (confirm('确定要删除这个面具吗？')) {
     maskList = maskList.filter(m => m.id !== currentEditingMask.id);
-    saveMaskListToStorage();
-    loadFullscreenMaskList(view);
+    await saveMaskListToStorage();
+    await loadFullscreenMaskList(view);
     closeFullscreenMaskEditPage(view);
   }
 }
@@ -582,8 +584,8 @@ function handleFullscreenAvatarFile(view, e) {
 /**
  * 加载全屏面具列表
  */
-function loadFullscreenMaskList(view) {
-  loadMaskListFromStorage();
+async function loadFullscreenMaskList(view) {
+  await loadMaskListFromStorage();
   
   const listContainer = view.querySelector('#fullscreenMaskList');
   if (!listContainer) return;
@@ -881,7 +883,7 @@ function closeMaskEditPage(view) {
 /**
  * 保存面具
  */
-function saveMask(view) {
+async function saveMask(view) {
   const nameInput = view.querySelector('#maskNameInput');
   const descInput = view.querySelector('#maskDescInput');
   const defaultSwitch = view.querySelector('#maskDefaultSwitch');
@@ -919,11 +921,11 @@ function saveMask(view) {
     maskList.push(maskData);
   }
   
-  // 保存到本地存储
-  saveMaskListToStorage();
+  // 保存到 IndexedDB
+  await saveMaskListToStorage();
   
   // 刷新列表
-  loadMaskList(view);
+  await loadMaskList(view);
   
   // 关闭编辑页
   closeMaskEditPage(view);
@@ -932,13 +934,13 @@ function saveMask(view) {
 /**
  * 删除面具
  */
-function deleteMask(view) {
+async function deleteMask(view) {
   if (!currentEditingMask) return;
   
   if (confirm('确定要删除这个面具吗？')) {
     maskList = maskList.filter(m => m.id !== currentEditingMask.id);
-    saveMaskListToStorage();
-    loadMaskList(view);
+    await saveMaskListToStorage();
+    await loadMaskList(view);
     closeMaskEditPage(view);
   }
 }
@@ -997,9 +999,9 @@ function handleAvatarFile(view, e) {
 /**
  * 加载面具列表
  */
-function loadMaskList(view) {
-  // 从本地存储加载
-  loadMaskListFromStorage();
+async function loadMaskList(view) {
+  // 从 IndexedDB 加载
+  await loadMaskListFromStorage();
   
   const listContainer = view.querySelector('#maskList');
   if (!listContainer) return;
@@ -1040,24 +1042,24 @@ function loadMaskList(view) {
 }
 
 /**
- * 保存面具列表到本地存储
+ * 保存面具列表到 IndexedDB
  */
-function saveMaskListToStorage() {
+async function saveMaskListToStorage() {
   try {
-    localStorage.setItem('phoneMaskList', JSON.stringify(maskList));
+    await saveMasksToIDB(maskList);
   } catch (e) {
     console.error('保存面具列表失败:', e);
   }
 }
 
 /**
- * 从本地存储加载面具列表
+ * 从 IndexedDB 加载面具列表
  */
-function loadMaskListFromStorage() {
+async function loadMaskListFromStorage() {
   try {
-    const data = localStorage.getItem('phoneMaskList');
-    if (data) {
-      maskList = JSON.parse(data);
+    const data = await loadMasksFromIDB();
+    if (data && data.length > 0) {
+      maskList = data;
     }
   } catch (e) {
     console.error('加载面具列表失败:', e);
