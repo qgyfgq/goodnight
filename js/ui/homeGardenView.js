@@ -17,24 +17,34 @@ export function initHomeGardenView() {
  * 绑定家园应用点击事件
  */
 function bindGardenApp() {
-  const gardenApps = document.querySelectorAll('.app[data-app-name="家园"]');
+  const gardenApps = document.querySelectorAll('.app[data-app-name="手机"]');
   gardenApps.forEach((app) => {
-    app.addEventListener('click', openGardenView);
+    app.addEventListener('click', openPhoneDirectly);
   });
 }
 
 /**
- * 打开家园视图
+ * 直接打开小手机界面（从 dock 栏点击家园应用时）
  */
-function openGardenView() {
+function openPhoneDirectly() {
   const homeView = document.getElementById('homeView');
   const gardenView = document.getElementById('homeGardenView');
+  const phoneView = document.getElementById('gardenPhoneView');
+  const gardenScene = document.querySelector('.garden-scene');
   
   if (homeView) {
     homeView.classList.add('is-hidden');
   }
   if (gardenView) {
     gardenView.classList.add('active');
+    // 隐藏家园场景背景，让小手机直接显示在主页上
+    gardenView.style.background = 'transparent';
+  }
+  if (gardenScene) {
+    gardenScene.style.display = 'none';
+  }
+  if (phoneView) {
+    phoneView.classList.add('active');
   }
   
   // 绑定手机按钮
@@ -42,6 +52,28 @@ function openGardenView() {
   
   // 更新手机日期
   updatePhoneDate();
+}
+
+/**
+ * 打开家园视图（从小手机内的首页应用点击时）
+ */
+function openGardenView() {
+  const phoneView = document.getElementById('gardenPhoneView');
+  const gardenView = document.getElementById('homeGardenView');
+  const gardenScene = document.querySelector('.garden-scene');
+  
+  // 关闭手机界面，显示家园场景
+  if (phoneView) {
+    phoneView.classList.remove('active');
+  }
+  
+  // 恢复家园场景背景
+  if (gardenView) {
+    gardenView.style.background = '';
+  }
+  if (gardenScene) {
+    gardenScene.style.display = '';
+  }
 }
 
 /**
@@ -90,25 +122,17 @@ function bindPhoneButton() {
 
 /**
  * 处理手机 home 键点击
- * 如果在应用视图内，返回手机主页；否则关闭手机界面
+ * 直接关闭小手机界面，返回网页主页
  */
 function handlePhoneHomeBtn() {
-  const appViews = document.querySelectorAll('.phone-app-view');
-  let hasActiveApp = false;
-  
-  appViews.forEach((view) => {
-    if (view.style.display === 'flex') {
-      hasActiveApp = true;
-    }
-  });
-  
-  if (hasActiveApp) {
-    // 在应用视图内，返回手机主页
-    closePhoneAppView();
-  } else {
-    // 在手机主页，关闭手机界面
-    closePhoneView();
-  }
+  // 关闭所有全屏应用
+  closeFullscreenApp();
+  // 关闭手机应用视图
+  closePhoneAppView();
+  // 关闭手机界面
+  closePhoneView();
+  // 关闭家园视图，返回网页主页
+  closeGardenView();
 }
 
 /**
@@ -133,9 +157,8 @@ function handlePhoneAppClick(e) {
       openFullscreenApp('mask');
       break;
     case 'home':
-      // 首页 - 返回网页主页
-      closePhoneView();
-      closeGardenView();
+      // 首页 - 显示家园场景（关闭手机界面）
+      openGardenView();
       break;
     default:
       // 其他应用暂未实现

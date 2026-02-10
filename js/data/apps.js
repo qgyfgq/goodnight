@@ -23,7 +23,7 @@ export const dockApps = [
     icon: "https://img.heliar.top/file/1769536129264_2849830_multimedia_options_setting_settings_gear_icon-removebg-preview__1___1_.png",
   },
   {
-    name: "家园",
+    name: "手机",
     icon: "https://img.heliar.top/file/1769535209969_1976053_home_home_page_homepage_homepages_icon-removebg-preview__1___1_.png",
   },
   {
