@@ -578,33 +578,22 @@
   position: relative;
   width: 2em;
   height: 2em;
+  background: transparent;
+  border: none;
+  box-shadow: none;
 }
 
-/* 相机机身 */
+/* 简约按钮图案 */
 .xinliao-camera-btn::before {
   content: "";
   position: absolute;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 1.2em;
-  height: 0.9em;
-  border: 2px solid #333;
-  border-radius: 0.15em;
-}
-
-/* 相机镜头 */
-.xinliao-camera-btn::after {
-  content: "";
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 0.45em;
-  height: 0.45em;
-  border: 2px solid #333;
+  width: 0.95em;
+  height: 0.95em;
+  border: 1.5px solid #475569;
   border-radius: 50%;
-  background: transparent;
 }
 
 /* ========== 图片选择弹窗 ========== */

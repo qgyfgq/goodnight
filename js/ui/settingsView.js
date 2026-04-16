@@ -12,6 +12,11 @@ export const initSettingsView = () => {
   const dataEntry = document.getElementById("dataSettingsEntry");
   const soundSection = document.getElementById("soundSettings");
   const soundEntry = document.getElementById("soundSettingsEntry");
+  const otherSection = document.getElementById("otherSettings");
+  const otherEntry = document.getElementById("otherSettingsEntry");
+  const otherSettingsMain = document.getElementById("otherSettingsMain");
+  const nearbyToneDetail = document.getElementById("nearbyToneDetail");
+  const nearbyToneEntry = document.getElementById("nearbyToneEntry");
 
   if (
     !homeView ||
@@ -24,7 +29,12 @@ export const initSettingsView = () => {
     !dataSection ||
     !dataEntry ||
     !soundSection ||
-    !soundEntry
+    !soundEntry ||
+    !otherSection ||
+    !otherEntry ||
+    !otherSettingsMain ||
+    !nearbyToneDetail ||
+    !nearbyToneEntry
   )
     return;
 
@@ -44,10 +54,12 @@ export const initSettingsView = () => {
     apiSection.classList.remove("active");
     dataSection.classList.remove("active");
     soundSection.classList.remove("active");
+    otherSection.classList.remove("active");
     settingsMain.style.display = "flex";
     apiSection.style.display = "none";
     dataSection.style.display = "none";
     soundSection.style.display = "none";
+    otherSection.style.display = "none";
     playTransition(settingsMain);
     setTitle("设置");
   };
@@ -57,10 +69,12 @@ export const initSettingsView = () => {
     apiSection.classList.add("active");
     dataSection.classList.remove("active");
     soundSection.classList.remove("active");
+    otherSection.classList.remove("active");
     settingsMain.style.display = "none";
     apiSection.style.display = "flex";
     dataSection.style.display = "none";
     soundSection.style.display = "none";
+    otherSection.style.display = "none";
     playTransition(apiSection);
     setTitle("API 设置");
   };
@@ -70,10 +84,12 @@ export const initSettingsView = () => {
     apiSection.classList.remove("active");
     dataSection.classList.add("active");
     soundSection.classList.remove("active");
+    otherSection.classList.remove("active");
     settingsMain.style.display = "none";
     apiSection.style.display = "none";
     dataSection.style.display = "flex";
     soundSection.style.display = "none";
+    otherSection.style.display = "none";
     playTransition(dataSection);
     setTitle("数据管理");
     // 显示数据管理主列表
@@ -135,12 +151,44 @@ export const initSettingsView = () => {
     apiSection.classList.remove("active");
     dataSection.classList.remove("active");
     soundSection.classList.add("active");
+    otherSection.classList.remove("active");
     settingsMain.style.display = "none";
     apiSection.style.display = "none";
     dataSection.style.display = "none";
     soundSection.style.display = "flex";
+    otherSection.style.display = "none";
     playTransition(soundSection);
     setTitle("提示音设置");
+  };
+
+  const showOtherDetail = () => {
+    settingsMain.classList.remove("active");
+    apiSection.classList.remove("active");
+    dataSection.classList.remove("active");
+    soundSection.classList.remove("active");
+    otherSection.classList.add("active");
+    settingsMain.style.display = "none";
+    apiSection.style.display = "none";
+    dataSection.style.display = "none";
+    soundSection.style.display = "none";
+    otherSection.style.display = "flex";
+    playTransition(otherSection);
+    setTitle("其他");
+    showOtherMainList();
+  };
+
+  const showOtherMainList = () => {
+    otherSettingsMain?.classList.add("active");
+    nearbyToneDetail?.classList.remove("active");
+    otherSection.dataset.detail = "list";
+    setTitle("其他");
+  };
+
+  const showNearbyToneDetail = () => {
+    otherSettingsMain?.classList.remove("active");
+    nearbyToneDetail?.classList.add("active");
+    otherSection.dataset.detail = "detail";
+    setTitle("陌生人尺度");
   };
 
   const showHome = () => {
@@ -166,6 +214,8 @@ export const initSettingsView = () => {
   apiEntry.addEventListener("click", showApiDetail);
   dataEntry.addEventListener("click", showDataDetail);
   soundEntry.addEventListener("click", showSoundDetail);
+  otherEntry.addEventListener("click", showOtherDetail);
+  nearbyToneEntry.addEventListener("click", showNearbyToneDetail);
 
   // 数据管理子页面点击事件
   storageEntry?.addEventListener("click", showStorageDetail);
@@ -176,6 +226,11 @@ export const initSettingsView = () => {
     // 检查是否在数据管理的子详情页
     if (dataSection.classList.contains("active") && dataSection.dataset.detail === "detail") {
       showDataMainList();
+      return;
+    }
+
+    if (otherSection.classList.contains("active") && otherSection.dataset.detail === "detail") {
+      showOtherMainList();
       return;
     }
 
@@ -196,7 +251,8 @@ export const initSettingsView = () => {
     if (
       apiSection.classList.contains("active") ||
       dataSection.classList.contains("active") ||
-      soundSection.classList.contains("active")
+      soundSection.classList.contains("active") ||
+      otherSection.classList.contains("active")
     ) {
       showMainList();
     } else {
@@ -220,10 +276,16 @@ export const initSettingsView = () => {
         return;
       }
 
+      if (otherSection.classList.contains("active") && otherSection.dataset.detail === "detail") {
+        showOtherMainList();
+        return;
+      }
+
       if (
         apiSection.classList.contains("active") ||
         dataSection.classList.contains("active") ||
-        soundSection.classList.contains("active")
+        soundSection.classList.contains("active") ||
+        otherSection.classList.contains("active")
       ) {
         showMainList();
       } else {

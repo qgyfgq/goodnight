@@ -2,9 +2,13 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>仿 iPhone 主屏幕</title>
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%237c3aed'/><text x='50' y='68' font-size='50' text-anchor='middle' fill='white'>📱</text></svg>" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <title>夜安</title>
+  <link rel="icon" href="assets/favicon.png" />
+  <link rel="apple-touch-icon" href="assets/favicon.png" />
   <link rel="stylesheet" href="css/reset.css" />
   <link rel="stylesheet" href="css/theme.css" />
   <link rel="stylesheet" href="css/layout.css" />
@@ -22,6 +26,21 @@
   <link rel="stylesheet" href="css/music/layout.css" />
   <link rel="stylesheet" href="css/music/search.css" />
   <link rel="stylesheet" href="css/home/layout.css" />
+  <script>
+    (function () {
+      function updateAppHeight() {
+        var viewportHeight = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+        document.documentElement.style.setProperty("--app-height", Math.round(viewportHeight) + "px");
+      }
+
+      updateAppHeight();
+      window.addEventListener("resize", updateAppHeight, { passive: true });
+      window.addEventListener("orientationchange", updateAppHeight, { passive: true });
+      if (window.visualViewport) {
+        window.visualViewport.addEventListener("resize", updateAppHeight, { passive: true });
+      }
+    })();
+  </script>
 </head>
 <body>
   <div class="page">
@@ -31,11 +50,13 @@
           <div class="notch"></div>
 
         <section class="status-bar glass">
-          <div class="avatar"></div>
+          <div class="avatar" id="statusAvatar"></div>
+          <input type="file" id="statusAvatarInput" class="status-avatar-input" accept="image/*" />
           <div class="status-time" id="statusTime">--:--</div>
           <div class="battery-widget">
             <div class="battery-ring">
               <svg class="battery-progress" viewBox="0 0 100 100">
+                <circle class="battery-track" cx="50" cy="50" r="45"></circle>
                 <circle class="battery-circle" cx="50" cy="50" r="45"></circle>
               </svg>
               <div class="battery-content">
@@ -109,6 +130,10 @@
                 <span class="settings-icon icon-voice"></span>
                 <span class="settings-text">语音设置</span>
               </div>
+              <button class="settings-item settings-link" id="otherSettingsEntry" aria-label="其他设置">
+                <span class="settings-icon icon-other"></span>
+                <span class="settings-text">其他</span>
+              </button>
             </div>
           </div>
 
@@ -131,6 +156,7 @@
                   <select id="modelSelect">
                     <option value="">请先拉取模型</option>
                   </select>
+                  <div class="field-hint model-fullname" id="modelFullName">未选择模型</div>
                 </div>
                 <button class="btn secondary" id="btnFetchModels">拉取模型列表</button>
               </div>
@@ -141,6 +167,13 @@
                   <div class="test-status" id="testStatus">未测试</div>
                 </div>
                 <button class="btn ghost" id="btnTest">测试连接</button>
+              </div>
+
+              <div class="field">
+                <label for="apiTemperature">温度</label>
+                <input id="apiTemperature" type="range" min="0" max="1" step="0.05" />
+                <div class="range-value" id="apiTemperatureValue">0.70</div>
+                <p class="field-hint">数值越高越发散，越低越稳定</p>
               </div>
 
               <div class="field">
@@ -347,7 +380,40 @@
               </div>
             </div>
           </div>
+
+          <div class="settings-section other-settings" id="otherSettings" data-detail="list">
+            <div class="other-settings-main active" id="otherSettingsMain">
+              <div class="settings-list">
+                <button class="settings-item settings-link" id="nearbyToneEntry" aria-label="陌生人尺度">
+                  <span class="settings-icon icon-other"></span>
+                  <span class="settings-text">陌生人尺度</span>
+                </button>
+              </div>
+            </div>
+            <div class="other-settings-detail" id="nearbyToneDetail">
+              <div class="settings-card">
+                <h3 class="settings-subtitle">陌生人尺度</h3>
+                <div class="field">
+                  <label for="nearbyToneRange">尺度</label>
+                  <input id="nearbyToneRange" type="range" min="0" max="10" step="1" />
+                  <div class="range-value" id="nearbyToneValue">6</div>
+                  <p class="field-hint">0 = 礼貌克制，10 = 露骨越界</p>
+                </div>
+              </div>
+            </div>
+          </div>
         </section>
+
+        <div class="status-avatar-popup" id="statusAvatarPopup">
+          <div class="status-avatar-card">
+            <div class="status-avatar-title">更换头像</div>
+            <div class="status-avatar-actions">
+              <button class="status-avatar-btn" id="statusAvatarLink">使用链接</button>
+              <button class="status-avatar-btn primary" id="statusAvatarFile">选择文件</button>
+            </div>
+            <button class="status-avatar-cancel" id="statusAvatarCancel">取消</button>
+          </div>
+        </div>
 
         <section class="xinliao-view glass" id="xinliaoView">
           <header class="xinliao-nav">
@@ -369,6 +435,19 @@
                 </div>
               </div>
               <button class="xinliao-icon-btn xinliao-nav-add xinliao-camera-btn is-hidden" id="xinliaoMomentsAdd" aria-label="发布动态"></button>
+              <div class="xinliao-dropdown is-hidden" id="xinliaoNearbyDropdown">
+                <button class="xinliao-icon-btn xinliao-nav-add xinliao-more-btn" id="xinliaoNearbyMore" aria-label="附近的人菜单"></button>
+                <div class="xinliao-dropdown-menu is-hidden" id="xinliaoNearbyMenu">
+                  <button class="xinliao-dropdown-item" id="xinliaoNearbyRefresh">
+                    <span class="xinliao-dropdown-icon">↻</span>
+                    <span>刷新</span>
+                  </button>
+                  <button class="xinliao-dropdown-item" id="xinliaoNearbyBlock">
+                    <span class="xinliao-dropdown-icon">⛔</span>
+                    <span>拉黑</span>
+                  </button>
+                </div>
+              </div>
             </div>
           </header>
 
@@ -467,20 +546,63 @@
             </section>
 
             <section class="xinliao-panel" id="xinliaoPanel-moments">
-              <!-- 动态背景头部 -->
-              <div class="xinliao-moments-header">
-                <div class="xinliao-moments-cover" id="xinliaoMomentsCover">
-                  <img src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=400&fit=crop" alt="cover" id="xinliaoMomentsCoverImg" />
+              <div class="xinliao-discover-menu" id="xinliaoDiscoverMenu">
+                <button class="xinliao-discover-item" type="button" data-target="moments">
+                  <span class="xinliao-discover-icon">◎</span>
+                  <span class="xinliao-discover-text">动态</span>
+                  <span class="xinliao-discover-arrow">›</span>
+                </button>
+                <button class="xinliao-discover-item" type="button" data-target="nearby">
+                  <span class="xinliao-discover-icon">◌</span>
+                  <span class="xinliao-discover-text">附近的人</span>
+                  <span class="xinliao-discover-arrow">›</span>
+                </button>
+              </div>
+
+              <div class="xinliao-discover-detail is-hidden" id="xinliaoDiscoverMoments">
+                <div class="xinliao-panel-head">
+                  <button class="xinliao-discover-back" type="button" data-back="discover">‹</button>
+                  <div class="xinliao-panel-title">动态</div>
+                  <div class="xinliao-panel-spacer"></div>
                 </div>
-                <div class="xinliao-moments-user">
-                  <span class="xinliao-moments-username" id="xinliaoMomentsUsername">我</span>
-                  <div class="xinliao-moments-user-avatar" id="xinliaoMomentsUserAvatar">
-                    <span class="xinliao-avatar-text">👤</span>
+                <div class="xinliao-discover-content">
+                  <!-- 动态背景头部 -->
+                  <div class="xinliao-moments-header">
+                    <div class="xinliao-moments-cover" id="xinliaoMomentsCover">
+                      <img src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=400&fit=crop" alt="cover" id="xinliaoMomentsCoverImg" />
+                    </div>
+                    <div class="xinliao-moments-user">
+                      <span class="xinliao-moments-username" id="xinliaoMomentsUsername">我</span>
+                      <div class="xinliao-moments-user-avatar" id="xinliaoMomentsUserAvatar">
+                        <span class="xinliao-avatar-text">👤</span>
+                      </div>
+                    </div>
                   </div>
+                  <div class="xinliao-note is-hidden" id="xinliaoMomentsStatus">使用占位数据</div>
+                  <div class="xinliao-list" id="xinliaoMomentsList"></div>
                 </div>
               </div>
-              <div class="xinliao-note is-hidden" id="xinliaoMomentsStatus">使用占位数据</div>
-              <div class="xinliao-list" id="xinliaoMomentsList"></div>
+
+              <div class="xinliao-discover-detail is-hidden" id="xinliaoDiscoverNearby">
+                <div class="xinliao-panel-head">
+                  <button class="xinliao-discover-back" type="button" data-back="discover">‹</button>
+                  <div class="xinliao-panel-title">附近的人</div>
+                  <div class="xinliao-panel-spacer"></div>
+                </div>
+                <div class="xinliao-nearby" id="xinliaoNearbyView">
+                  <div class="xinliao-nearby-toolbar is-hidden" id="xinliaoNearbyToolbar">
+                    <span class="xinliao-nearby-toolbar-text">
+                      已选择 <span id="xinliaoNearbySelectedCount">0</span> 个
+                    </span>
+                    <div class="xinliao-nearby-toolbar-actions">
+                      <button class="xinliao-btn danger" id="xinliaoNearbyDelete">拉黑选中</button>
+                      <button class="xinliao-btn ghost" id="xinliaoNearbyCancel">取消</button>
+                    </div>
+                  </div>
+                  <div class="xinliao-nearby-hint is-hidden" id="xinliaoNearbyHint"></div>
+                  <div class="xinliao-nearby-list" id="xinliaoNearbyList"></div>
+                </div>
+              </div>
             </section>
 
             <!-- 动态发布编辑器 -->
@@ -610,12 +732,26 @@
                 <div class="xinliao-chat-header-name" id="xinliaoChatName">聊天</div>
                 <div class="xinliao-chat-header-status is-hidden" id="xinliaoChatStatus">正在输入中</div>
               </div>
-              <div class="xinliao-chat-header-spacer"></div>
+              <div class="xinliao-chat-actions is-hidden" id="xinliaoChatNearbyDropdown">
+                <button class="xinliao-chat-action-btn" id="xinliaoChatNearbyMore" type="button" aria-label="更多操作">＋</button>
+                <div class="xinliao-chat-actions-menu is-hidden" id="xinliaoChatNearbyMenu">
+                  <button class="xinliao-dropdown-item" id="xinliaoChatNearbyBlock">
+                    <span class="xinliao-dropdown-icon">⛔</span>
+                    <span>拉黑</span>
+                  </button>
+                  <button class="xinliao-dropdown-item" id="xinliaoChatNearbyAddFriend">
+                    <span class="xinliao-dropdown-icon">🤝</span>
+                    <span>加好友</span>
+                  </button>
+                </div>
+              </div>
+              <div class="xinliao-chat-header-spacer" id="xinliaoChatHeaderSpacer"></div>
             </header>
             <!-- 消息删除栏 -->
             <div class="xinliao-chat-delete-bar is-hidden" id="xinliaoChatDeleteBar">
               <button class="xinliao-chat-delete-cancel" id="xinliaoChatDeleteCancel">取消</button>
               <span class="xinliao-chat-delete-info">已选择 <span id="xinliaoChatDeleteCount">0</span> 条</span>
+              <button class="xinliao-chat-quote-btn" id="xinliaoChatQuoteBtn">引用</button>
               <button class="xinliao-chat-delete-btn" id="xinliaoChatDeleteBtn">删除</button>
             </div>
             <div class="xinliao-chat-messages" id="xinliaoChatMessages"></div>

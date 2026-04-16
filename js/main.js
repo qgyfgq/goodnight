@@ -6,6 +6,7 @@ import { initSettingsView } from "./ui/settingsView.js";
 import { initApiSettings } from "./ui/apiSettings.js";
 import { initDataSettings } from "./ui/dataSettings.js";
 import { initSoundSettings } from "./ui/soundSettings.js";
+import { initOtherSettings } from "./ui/otherSettings.js";
 import { initUiSoundTrigger } from "./audio/uiSoundTrigger.js";
 import { getAudioManager } from "./audio/audioManager.js";
 import { initXinliaoView } from "./ui/xinliaoView.js";
@@ -44,6 +45,9 @@ const setup = async () => {
 
   // 初始化提示音设置交互
   initSoundSettings();
+
+  // 初始化其他设置交互
+  initOtherSettings();
 
   // 预加载音频文件（减少首次播放延迟）
   getAudioManager().preload();

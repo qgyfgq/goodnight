@@ -1,6 +1,7 @@
 const DEFAULT_TIMEOUT = 8000;
 const STORAGE_KEY = "apiProfiles";
 const ACTIVE_PROFILE_KEY = "apiActiveProfile";
+const DEFAULT_TEMPERATURE = 0.7;
 
 const setStatus = (el, text, variant = "neutral") => {
   el.textContent = text;
@@ -59,6 +60,9 @@ export const initApiSettings = () => {
   const testBtn = document.getElementById("btnTest");
   const saveBtn = document.getElementById("btnSave");
   const testStatus = document.getElementById("testStatus");
+  const modelFullName = document.getElementById("modelFullName");
+  const temperatureInput = document.getElementById("apiTemperature");
+  const temperatureValue = document.getElementById("apiTemperatureValue");
   const savePopup = document.getElementById("savePopup");
   const saveNameInput = document.getElementById("saveNameInput");
   const saveCancelBtn = document.getElementById("btnSaveCancel");
@@ -77,6 +81,9 @@ export const initApiSettings = () => {
     !testBtn ||
     !saveBtn ||
     !testStatus ||
+    !modelFullName ||
+    !temperatureInput ||
+    !temperatureValue ||
     !savePopup ||
     !saveNameInput ||
     !saveCancelBtn ||
@@ -140,6 +147,21 @@ export const initApiSettings = () => {
 
   let currentProfileId = null;
 
+  const formatTemperature = (value) => {
+    const num = Number(value);
+    if (Number.isNaN(num)) return DEFAULT_TEMPERATURE.toFixed(2);
+    return num.toFixed(2);
+  };
+
+  const updateTemperatureDisplay = (value) => {
+    temperatureValue.textContent = formatTemperature(value);
+  };
+
+  const updateModelFullName = () => {
+    const value = modelSelect.value || "";
+    modelFullName.textContent = value ? value : "未选择模型";
+  };
+
   const ensureModelOption = (model) => {
     if (!model) return;
     const exists = Array.from(modelSelect.options).some((opt) => opt.value === model);
@@ -173,6 +195,10 @@ export const initApiSettings = () => {
       ensureModelOption(profile.model);
       modelSelect.value = profile.model;
     }
+    const temp = Number(profile.temperature);
+    temperatureInput.value = Number.isNaN(temp) ? DEFAULT_TEMPERATURE : temp;
+    updateTemperatureDisplay(temperatureInput.value);
+    updateModelFullName();
     currentProfileId = profile.id;
     // 保存活动配置ID到localStorage
     localStorage.setItem(ACTIVE_PROFILE_KEY, profile.id);
@@ -200,12 +226,24 @@ export const initApiSettings = () => {
     
     // 更新下拉选择器中的显示文本
     renderProfileSelect(list, currentProfileId);
+    updateModelFullName();
   };
 
   // 监听模型选择变化
   modelSelect.addEventListener("change", () => {
     updateCurrentProfileModel();
   });
+
+  const updateCurrentProfileTemperature = () => {
+    if (!currentProfileId) return;
+    const temp = Number(temperatureInput.value);
+    const safeTemp = Number.isNaN(temp) ? DEFAULT_TEMPERATURE : temp;
+    const list = readProfiles();
+    const profileIndex = list.findIndex((p) => p.id === currentProfileId);
+    if (profileIndex === -1) return;
+    list[profileIndex].temperature = safeTemp;
+    writeProfiles(list);
+  };
 
   const bootstrapProfiles = () => {
     const list = readProfiles();
@@ -244,7 +282,7 @@ export const initApiSettings = () => {
       list
         .map((m) => {
           const id = m?.id || m?.name || "";
-          return id ? `<option value="${id}">${id}</option>` : "";
+          return id ? `<option value="${id}" title="${id}">${id}</option>` : "";
         })
         .join("");
     if (previousValue) {
@@ -253,6 +291,7 @@ export const initApiSettings = () => {
       );
       if (found) modelSelect.value = previousValue;
     }
+    updateModelFullName();
   };
 
   // 拉取模型列表
@@ -325,6 +364,7 @@ export const initApiSettings = () => {
             model,
             messages: [{ role: "user", content: "hello" }],
             max_tokens: 16,
+            temperature: Number(temperatureInput.value) || DEFAULT_TEMPERATURE,
             stream: false,
           }),
           signal,
@@ -437,6 +477,7 @@ export const initApiSettings = () => {
     }
 
     const model = modelSelect.value || "";
+    const temperature = Number(temperatureInput.value);
     const trimmedName = name.trim();
 
     const list = readProfiles();
@@ -447,6 +488,7 @@ export const initApiSettings = () => {
       url: baseUrl,
       key: apiKey,
       model,
+      temperature: Number.isNaN(temperature) ? DEFAULT_TEMPERATURE : temperature,
     };
 
     const nextList = existing
@@ -465,5 +507,15 @@ export const initApiSettings = () => {
     if (e.target === savePopup) closeSavePopup();
   });
 
+  temperatureInput.addEventListener("input", () => {
+    updateTemperatureDisplay(temperatureInput.value);
+    updateCurrentProfileTemperature();
+  });
+
   bootstrapProfiles();
+  if (!temperatureInput.value) {
+    temperatureInput.value = DEFAULT_TEMPERATURE;
+  }
+  updateTemperatureDisplay(temperatureInput.value || DEFAULT_TEMPERATURE);
+  updateModelFullName();
 };

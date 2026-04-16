@@ -25,10 +25,28 @@
   display: none;
   flex-direction: column;
   gap: 1em;
+  min-height: 0;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
 
 .settings-section.active {
   display: flex;
+}
+
+.settings-section::-webkit-scrollbar {
+  display: none;
+}
+
+.api-settings {
+  overflow-y: auto;
+  padding-bottom: 0.5rem;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.api-settings::-webkit-scrollbar {
+  display: none;
 }
 
 .settings-section.transition-in {
@@ -56,6 +74,35 @@
 .sound-settings-detail {
   overflow-y: auto;
   padding-bottom: 0.5rem;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.sound-settings-detail::-webkit-scrollbar {
+  display: none;
+}
+
+.other-settings-main,
+.other-settings-detail {
+  display: none;
+  flex-direction: column;
+  gap: 1em;
+}
+
+.other-settings-main.active,
+.other-settings-detail.active {
+  display: flex;
+}
+
+.other-settings-detail {
+  overflow-y: auto;
+  padding-bottom: 0.5rem;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.other-settings-detail::-webkit-scrollbar {
+  display: none;
 }
 
 .settings-subtitle {
@@ -68,6 +115,13 @@
 .range-value {
   font-size: 0.85rem;
   color: rgba(45, 45, 45, 0.7);
+}
+
+.other-settings input[type="range"] {
+  width: 100%;
+  padding: 0;
+  margin: 0;
+  box-sizing: border-box;
 }
 
 .file-input {
@@ -195,6 +249,27 @@
   height: 70%;
   right: 18%;
   background: rgba(255, 255, 255, 0.7);
+}
+
+/* 其他设置 */
+.icon-other {
+  background: linear-gradient(135deg, #94a3b8, #cbd5f5);
+}
+
+.icon-other::before {
+  width: 60%;
+  height: 60%;
+  inset: 20%;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.icon-other::after {
+  width: 25%;
+  height: 25%;
+  inset: 37.5%;
+  border-radius: 50%;
+  background: rgba(100, 116, 139, 0.9);
 }
 
 /* 数据设置 */
@@ -503,6 +578,10 @@
 .field-hint {
   font-size: 0.78em;
   color: var(--text-secondary);
+}
+
+.model-fullname {
+  word-break: break-all;
 }
 
 .btn {

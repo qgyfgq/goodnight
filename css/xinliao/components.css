@@ -117,8 +117,20 @@
   color: #1f2a44;
 }
 
+.xinliao-btn.danger {
+  background: linear-gradient(135deg, #f87171, #ef4444);
+  color: #fff;
+}
+
 .xinliao-btn:active {
   transform: scale(0.98);
+}
+
+.xinliao-btn.ghost {
+  background: rgba(255, 255, 255, 0.65);
+  color: var(--text-secondary);
+  border: 1px solid rgba(148, 163, 184, 0.3);
+  box-shadow: none;
 }
 
 .xinliao-tag {
@@ -153,6 +165,25 @@
 .xinliao-icon-btn:active {
   background: rgba(240, 245, 255, 0.95);
   box-shadow: 0 0.3em 0.6em rgba(15, 23, 42, 0.1);
+}
+
+.xinliao-more-btn {
+  position: relative;
+  width: 3.2em;
+  height: 3.2em;
+}
+
+.xinliao-more-btn::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0.25em;
+  height: 0.25em;
+  background: #475569;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  box-shadow: 0 -0.45em 0 #475569, 0 0.45em 0 #475569;
 }
 
 .xinliao-nav-add {

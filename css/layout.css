@@ -155,3 +155,30 @@
   gap: 0;
   padding: 0.625em 1em;  /* 10px 16px */
 }
+
+@media (max-width: 48em) {
+  body {
+    min-height: var(--app-height);
+    overflow: hidden;
+  }
+
+  .page {
+    width: 100%;
+    min-height: var(--app-height);
+    padding: 0;
+  }
+
+  .device {
+    width: 100%;
+    height: var(--app-height);
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  .widget-container {
+    padding-top: calc(1.125em + env(safe-area-inset-top));
+    padding-right: max(1em, env(safe-area-inset-right));
+    padding-bottom: calc(1.25em + env(safe-area-inset-bottom));
+    padding-left: max(1em, env(safe-area-inset-left));
+  }
+}

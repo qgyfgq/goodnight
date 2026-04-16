@@ -45,16 +45,17 @@ const updateBatteryRing = (percentage, element) => {
   const circle = element.querySelector('.battery-circle');
   if (!circle) return;
 
-  // 计算 stroke-dashoffset（141.37 是周长）
-  const circumference = 141.37;
-  const offset = circumference * (1 - percentage / 100);
+  // 计算 stroke-dashoffset（282.74 是周长）
+  const circumference = 282.74;
+  const clamped = Math.max(0, Math.min(100, percentage));
+  const offset = circumference * (1 - clamped / 100);
   circle.style.strokeDashoffset = offset;
 
   // 根据电量改变颜色
   circle.classList.remove('charge-high', 'charge-mid', 'charge-low');
-  if (percentage > 50) {
+  if (clamped > 50) {
     circle.classList.add('charge-high');
-  } else if (percentage > 20) {
+  } else if (clamped > 20) {
     circle.classList.add('charge-mid');
   } else {
     circle.classList.add('charge-low');
@@ -66,8 +67,25 @@ export const initStatusBar = async () => {
   const percentageEl = document.getElementById('batteryPercentage');
   const chargingEl = document.getElementById('chargingIcon');
   const batteryWidget = document.querySelector('.battery-widget');
+  const avatarEl = document.getElementById('statusAvatar');
+  const avatarInput = document.getElementById('statusAvatarInput');
+  const avatarPopup = document.getElementById('statusAvatarPopup');
+  const avatarLinkBtn = document.getElementById('statusAvatarLink');
+  const avatarFileBtn = document.getElementById('statusAvatarFile');
+  const avatarCancelBtn = document.getElementById('statusAvatarCancel');
 
-  if (!timeEl || !percentageEl || !batteryWidget) return;
+  if (
+    !timeEl ||
+    !percentageEl ||
+    !batteryWidget ||
+    !avatarEl ||
+    !avatarInput ||
+    !avatarPopup ||
+    !avatarLinkBtn ||
+    !avatarFileBtn ||
+    !avatarCancelBtn
+  )
+    return;
 
   const updateTime = () => {
     timeEl.textContent = formatTime();
@@ -81,6 +99,16 @@ export const initStatusBar = async () => {
     }
     updateBatteryRing(level, batteryWidget);
   };
+
+  const applyAvatar = (src) => {
+    if (!src) return;
+    avatarEl.style.backgroundImage = `url("${src}")`;
+  };
+
+  const savedAvatar = localStorage.getItem('statusAvatar');
+  if (savedAvatar) {
+    applyAvatar(savedAvatar);
+  }
 
   // 初始化时间
   updateTime();
@@ -119,4 +147,51 @@ export const initStatusBar = async () => {
 
   // 备用：每 30 秒轮询更新（防止事件不触发的情况）
   setInterval(updateBattery, 30 * 1000);
+
+  const openAvatarPopup = () => {
+    avatarPopup.classList.add('active');
+  };
+
+  const closeAvatarPopup = () => {
+    avatarPopup.classList.remove('active');
+  };
+
+  // 点击头像更换图片
+  avatarEl.addEventListener('click', openAvatarPopup);
+
+  avatarLinkBtn.addEventListener('click', () => {
+    const url = prompt("请输入图片链接");
+    if (!url) return;
+    applyAvatar(url.trim());
+    localStorage.setItem('statusAvatar', url.trim());
+    closeAvatarPopup();
+  });
+
+  avatarFileBtn.addEventListener('click', () => {
+    avatarInput.click();
+  });
+
+  avatarCancelBtn.addEventListener('click', closeAvatarPopup);
+
+  avatarPopup.addEventListener('click', (event) => {
+    if (event.target === avatarPopup) {
+      closeAvatarPopup();
+    }
+  });
+
+  avatarInput.addEventListener('change', (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = reader.result;
+      if (typeof result === 'string') {
+        applyAvatar(result);
+        localStorage.setItem('statusAvatar', result);
+      }
+      avatarInput.value = "";
+      closeAvatarPopup();
+    };
+    reader.readAsDataURL(file);
+  });
 };

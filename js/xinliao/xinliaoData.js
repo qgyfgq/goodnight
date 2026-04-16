@@ -1,7 +1,7 @@
 export const defaultTabs = [
   { id: "messages", label: "消息" },
   { id: "contacts", label: "联系人" },
-  { id: "moments", label: "动态" },
+  { id: "moments", label: "发现" },
 ];
 
 export const placeholderChats = [];

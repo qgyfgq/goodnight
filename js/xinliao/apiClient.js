@@ -4,7 +4,7 @@ import { loadMasksFromIDB } from "../storage/indexedDB.js";
 
 const STORAGE_KEY = "apiProfiles";
 const ACTIVE_PROFILE_KEY = "apiActiveProfile";
-const DEFAULT_TIMEOUT = 30000;
+const DEFAULT_TIMEOUT = 60000;
 
 const readProfiles = () => {
   try {
@@ -155,7 +155,7 @@ ${userPersonaPrompt}
     model: profile.model,
     messages,
     max_tokens: 800,
-    temperature: 0.85,
+    temperature: typeof profile.temperature === "number" ? profile.temperature : 0.85,
     stream: false,
   };
 
@@ -341,7 +341,7 @@ export const requestChatJson = async ({ prompt }) => {
     model: profile.model,
     messages: [...buildSystemMessages(), { role: "user", content: prompt }],
     max_tokens: 400,
-    temperature: 0.7,
+    temperature: typeof profile.temperature === "number" ? profile.temperature : 0.7,
     stream: false,
   };
 

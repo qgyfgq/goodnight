@@ -43,6 +43,8 @@ export const normalizeChat = (item = {}) => ({
   name: item.name || "未命名会话",
   avatar: item.avatar || "💬",
   members: item.members || [], // 成员 ID 列表
+  source: item.source || "",
+  nearbyContact: item.nearbyContact || null,
   lastMessage: item.lastMessage || "",
   lastTime: item.lastTime || Date.now(),
   unread: item.unread || 0,

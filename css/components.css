@@ -16,6 +16,82 @@
   background-size: cover;
   background-position: center;
   flex-shrink: 0;
+  cursor: pointer;
+}
+
+.status-avatar-input {
+  display: none;
+}
+
+.status-avatar-popup {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.35);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 1200;
+  animation: fadeIn 0.15s ease;
+}
+
+.status-avatar-popup.active {
+  display: flex;
+}
+
+.status-avatar-card {
+  width: 85%;
+  max-width: 260px;
+  background: #fff;
+  border-radius: 1.2em;
+  box-shadow: 0 1em 2.5em rgba(15, 23, 42, 0.2);
+  padding: 1em;
+  display: flex;
+  flex-direction: column;
+  gap: 0.8em;
+}
+
+.status-avatar-title {
+  font-weight: 600;
+  font-size: 0.95em;
+  color: var(--text-primary);
+  text-align: center;
+}
+
+.status-avatar-actions {
+  display: flex;
+  gap: 0.6em;
+}
+
+.status-avatar-btn {
+  flex: 1;
+  padding: 0.55em 0.8em;
+  border-radius: 0.8em;
+  border: 1px solid rgba(148, 163, 184, 0.4);
+  background: rgba(255, 255, 255, 0.9);
+  color: var(--text-primary);
+  cursor: pointer;
+  font-size: 0.85em;
+  transition: transform 0.15s ease, box-shadow 0.2s ease;
+}
+
+.status-avatar-btn.primary {
+  background: linear-gradient(135deg, #7da6ff, #5b7bff);
+  color: #fff;
+  border-color: transparent;
+}
+
+.status-avatar-btn:active {
+  transform: scale(0.98);
+}
+
+.status-avatar-cancel {
+  width: 100%;
+  padding: 0.6em 0.8em;
+  border: none;
+  border-radius: 0.8em;
+  background: rgba(148, 163, 184, 0.15);
+  color: var(--text-secondary);
+  cursor: pointer;
 }
 
 /* 时间文本 */
@@ -46,6 +122,30 @@
   justify-content: center;
 }
 
+.battery-ring::before {
+  content: "";
+  position: absolute;
+  inset: 0.18em;
+  border-radius: 50%;
+  border: 2px solid rgba(15, 23, 42, 0.28);
+  box-shadow:
+    inset 0 0.35em 0.7em rgba(15, 23, 42, 0.14),
+    inset 0 -0.15em 0.35em rgba(255, 255, 255, 0.5);
+}
+
+.battery-ring::after {
+  content: "";
+  position: absolute;
+  inset: 0.38em;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle at 30% 30%,
+    rgba(255, 255, 255, 0.5),
+    rgba(255, 255, 255, 0) 60%
+  );
+  pointer-events: none;
+}
+
 .battery-progress {
   position: absolute;
   width: 100%;
@@ -53,29 +153,36 @@
   transform: rotate(-90deg);
 }
 
+.battery-track {
+  fill: none;
+  stroke: rgba(15, 23, 42, 0.12);
+  stroke-width: 2.6;
+}
+
 .battery-circle {
   fill: none;
-  stroke: var(--text-secondary);
-  stroke-width: 3;
-  stroke-dasharray: 141.37;  /* 2 * π * 45 */
+  stroke: rgba(15, 23, 42, 0.18);
+  stroke-width: 2.6;
+  stroke-dasharray: 282.74;  /* 2 * π * 45 */
   stroke-dashoffset: 0;
   transition: stroke-dashoffset 0.5s ease;
-  opacity: 0.3;
+  stroke-linecap: round;
+  opacity: 1;
 }
 
 .battery-circle.charge-high {
-  stroke: #81c784;
-  opacity: 0.8;
+  stroke: #22c55e;
+  opacity: 0.9;
 }
 
 .battery-circle.charge-mid {
-  stroke: #ffb74d;
-  opacity: 0.8;
+  stroke: #f59e0b;
+  opacity: 0.9;
 }
 
 .battery-circle.charge-low {
-  stroke: #e57373;
-  opacity: 0.8;
+  stroke: #ef4444;
+  opacity: 0.9;
 }
 
 .battery-content {

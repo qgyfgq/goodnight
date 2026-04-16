@@ -1,11 +1,16 @@
 import {
   defaultTabs,
-  placeholderContacts,
 } from "../xinliao/xinliaoData.js";
 import { initMessagesModule } from "../xinliao/messagesModule.js";
 import { initChatModule } from "../xinliao/chatModule.js";
 import { initMomentsModule } from "../xinliao/momentsModule.js";
+import { loadChatMessages, saveChatMessages, deleteChatMessages } from "../xinliao/chatData.js";
+import { loadStoredChats, saveChats } from "../xinliao/messagesData.js";
+import { requestChatJson, getDefaultMask } from "../xinliao/apiClient.js";
+import { getNearbyToneSetting } from "./otherSettings.js";
+import { loadStoredNearby, saveNearby, normalizeNearby } from "../xinliao/nearbyData.js";
 import { loadWorldbookData, saveWorldbookData, createGroup, createEntry } from "../worldbook/worldbookData.js";
+import { loadContactsFromIDB, saveContactsToIDB } from "../storage/indexedDB.js";
 
 const getEl = (id) => document.getElementById(id);
 
@@ -89,26 +94,47 @@ const createContactGroup = (name) => {
   return group;
 };
 
-const loadStoredContacts = () => {
+const loadStoredContacts = async () => {
+  try {
+    const idbList = await loadContactsFromIDB();
+    const validIdbList = (Array.isArray(idbList) ? idbList : []).filter(
+      (item) => item && (item.id || item.name)
+    );
+    if (validIdbList.length) {
+      return validIdbList.map(normalizeContact);
+    }
+  } catch (error) {
+    console.warn("从 IndexedDB 加载联系人失败，回退 localStorage:", error);
+  }
+
   try {
     const raw = localStorage.getItem(CONTACTS_STORAGE_KEY);
     if (!raw) return [];
     const data = JSON.parse(raw);
     const list = Array.isArray(data) ? data : [data];
-    // 过滤掉无效的联系人（没有 id 或 name 的）
-    const validList = list.filter(item => item && (item.id || item.name));
+    const validList = list.filter((item) => item && (item.id || item.name));
     if (!validList.length) return [];
-    return validList.map(normalizeContact);
+    const normalized = validList.map(normalizeContact);
+    saveContactsToIDB(normalized).catch((error) => {
+      console.warn("联系人迁移到 IndexedDB 失败:", error);
+    });
+    return normalized;
   } catch (error) {
     return [];
   }
 };
 
-const saveContacts = (list) => {
+const saveContacts = async (list) => {
+  try {
+    await saveContactsToIDB(list);
+  } catch (error) {
+    console.warn("保存联系人到 IndexedDB 失败:", error);
+  }
+
   try {
     localStorage.setItem(CONTACTS_STORAGE_KEY, JSON.stringify(list));
   } catch (error) {
-    // 忽略存储失败
+    console.warn("保存联系人到 localStorage 失败（可能是配额不足）:", error);
   }
 };
 
@@ -149,6 +175,7 @@ export const initXinliaoView = async () => {
   const xinliaoView = getEl("xinliaoView");
   const backButton = getEl("xinliaoBack");
   const tabBar = getEl("xinliaoTabs");
+  const xinliaoTitle = xinliaoView?.querySelector(".xinliao-title");
 
   if (!homeView || !settingsView || !xinliaoView || !backButton || !tabBar) {
     return;
@@ -178,6 +205,46 @@ export const initXinliaoView = async () => {
   const dropdownCreate = getEl("xinliaoDropdownCreate");
   const dropdownImport = getEl("xinliaoDropdownImport");
   const momentsAdd = getEl("xinliaoMomentsAdd");
+  const nearbyDropdown = getEl("xinliaoNearbyDropdown");
+  const nearbyMenu = getEl("xinliaoNearbyMenu");
+  const nearbyMore = getEl("xinliaoNearbyMore");
+  const nearbyRefresh = getEl("xinliaoNearbyRefresh");
+  const nearbyBlock = getEl("xinliaoNearbyBlock");
+  const nearbyToolbar = getEl("xinliaoNearbyToolbar");
+  const nearbySelectedCount = getEl("xinliaoNearbySelectedCount");
+  const nearbyDelete = getEl("xinliaoNearbyDelete");
+  const nearbyCancel = getEl("xinliaoNearbyCancel");
+  const nearbyHint = getEl("xinliaoNearbyHint");
+  const nearbyListEl = getEl("xinliaoNearbyList");
+  const discoverMenu = getEl("xinliaoDiscoverMenu");
+  const discoverMoments = getEl("xinliaoDiscoverMoments");
+  const discoverNearby = getEl("xinliaoDiscoverNearby");
+
+  let activeDiscover = "menu";
+  let isNearbySelectMode = false;
+  let selectedNearbyIds = new Set();
+  let nearbyList = loadStoredNearby();
+  let isNearbyRefreshing = false;
+
+  const updateDiscoverView = () => {
+    if (!discoverMenu || !discoverMoments || !discoverNearby) return;
+    discoverMenu.classList.toggle("is-hidden", activeDiscover !== "menu");
+    discoverMoments.classList.toggle("is-hidden", activeDiscover !== "moments");
+    discoverNearby.classList.toggle("is-hidden", activeDiscover !== "nearby");
+    momentsAdd?.classList.toggle("is-hidden", activeDiscover !== "moments");
+    xinliaoView.classList.toggle("is-discover-subpage", activeDiscover !== "menu");
+    nearbyDropdown?.classList.toggle("is-hidden", activeDiscover !== "nearby");
+    nearbyMenu?.classList.add("is-hidden");
+    if (xinliaoTitle) {
+      if (activeDiscover === "moments") {
+        xinliaoTitle.textContent = "动态";
+      } else if (activeDiscover === "nearby") {
+        xinliaoTitle.textContent = "附近的人";
+      } else {
+        xinliaoTitle.textContent = "信聊";
+      }
+    }
+  };
 
   const setActiveTab = (tabId) => {
     const tabButtons = tabBar.querySelectorAll(".xinliao-tab");
@@ -191,7 +258,17 @@ export const initXinliaoView = async () => {
     // 根据当前标签显示对应的添加按钮
     messagesAdd?.classList.toggle("is-hidden", tabId !== "messages");
     contactsDropdown?.classList.toggle("is-hidden", tabId !== "contacts");
-    momentsAdd?.classList.toggle("is-hidden", tabId !== "moments");
+    if (tabId === "moments") {
+      updateDiscoverView();
+    } else {
+      activeDiscover = "menu";
+      momentsAdd?.classList.add("is-hidden");
+      nearbyDropdown?.classList.add("is-hidden");
+      nearbyMenu?.classList.add("is-hidden");
+      exitNearbySelectMode();
+      xinliaoView.classList.remove("is-discover-subpage");
+      if (xinliaoTitle) xinliaoTitle.textContent = "信聊";
+    }
     // 切换标签时关闭下拉菜单
     contactsMenu?.classList.add("is-hidden");
   };
@@ -201,6 +278,255 @@ export const initXinliaoView = async () => {
     if (!button) return;
     setActiveTab(button.dataset.tab);
   });
+
+  discoverMenu?.addEventListener("click", (event) => {
+    const item = event.target.closest(".xinliao-discover-item");
+    if (!item) return;
+    const target = item.dataset.target;
+    if (target === "moments" || target === "nearby") {
+      activeDiscover = target;
+      updateDiscoverView();
+      if (activeDiscover === "nearby") {
+        renderNearbyList();
+      }
+    }
+  });
+
+  xinliaoView?.addEventListener("click", (event) => {
+    const backBtn = event.target.closest(".xinliao-discover-back");
+    if (!backBtn) return;
+    activeDiscover = "menu";
+    updateDiscoverView();
+  });
+
+  const showNearbyHint = (message) => {
+    if (!nearbyHint) return;
+    nearbyHint.textContent = message;
+    nearbyHint.classList.remove("is-hidden");
+  };
+
+  const hideNearbyHint = () => {
+    if (!nearbyHint) return;
+    nearbyHint.textContent = "";
+    nearbyHint.classList.add("is-hidden");
+  };
+
+  const updateNearbyToolbar = () => {
+    if (!nearbyToolbar || !nearbySelectedCount) return;
+    nearbyToolbar.classList.toggle("is-hidden", !isNearbySelectMode);
+    nearbySelectedCount.textContent = String(selectedNearbyIds.size);
+  };
+
+  const enterNearbySelectMode = () => {
+    isNearbySelectMode = true;
+    selectedNearbyIds.clear();
+    updateNearbyToolbar();
+    renderNearbyList();
+  };
+
+  const exitNearbySelectMode = () => {
+    isNearbySelectMode = false;
+    selectedNearbyIds.clear();
+    updateNearbyToolbar();
+    renderNearbyList();
+  };
+
+  const toggleNearbySelect = (id) => {
+    if (selectedNearbyIds.has(id)) {
+      selectedNearbyIds.delete(id);
+    } else {
+      selectedNearbyIds.add(id);
+    }
+    updateNearbyToolbar();
+    renderNearbyList();
+  };
+
+  const openNearbyChat = async (nearbyItem) => {
+    if (!nearbyItem || !chatModule) return;
+    try {
+      showNearbyHint("正在打开聊天...");
+      const chatId = `nearby-chat-${nearbyItem.id}`;
+      const baseChat = {
+        id: chatId,
+        type: "single",
+        source: "nearby",
+        name: nearbyItem.name,
+        avatar: nearbyItem.avatar,
+        members: [nearbyItem.id],
+        nearbyContact: {
+          id: nearbyItem.id,
+          name: nearbyItem.name,
+          avatar: nearbyItem.avatar,
+          persona: `你是“附近的人”中的陌生人 ${nearbyItem.name}，会主动搭讪用户，语气贴近开场文案：${nearbyItem.line || "你好，认识一下。"}`
+        },
+      };
+
+      const storedChats = await loadStoredChats();
+      const existedChat = storedChats.find((c) => c.id === chatId);
+      const existedMessages = await loadChatMessages(chatId);
+      if (existedChat && existedMessages.length > 0) {
+        hideNearbyHint();
+        chatModule.openChat({
+          ...existedChat,
+          source: "nearby",
+          nearbyContact: baseChat.nearbyContact,
+        });
+        return;
+      }
+
+      const mask = await getDefaultMask();
+      const userName = mask?.name || "你";
+      const prompt = `你在扮演“附近的人”中的陌生人。` +
+        `你的网名是“${nearbyItem.name}”，头像风格可忽略。` +
+        `现在请向用户“${userName}”发送 2-4 条连续私聊开场消息，语气符合你的人设。` +
+        `输出 JSON 字符串数组。每条 8-26 字。不要编号，不要解释。`;
+      let generated = [];
+      try {
+        const apiMessages = await requestChatJson({ prompt });
+        if (Array.isArray(apiMessages)) {
+          generated = apiMessages
+            .map((item) => String(item || "").trim())
+            .filter(Boolean)
+            .slice(0, 4);
+        }
+      } catch (error) {
+        console.warn("生成附近的人聊天开场失败，使用回退文案", error);
+      }
+
+      if (!generated.length) {
+        generated = [
+          `嗨，我是${nearbyItem.name}，刚好刷到你。`,
+          "看你气质挺特别，想先认识一下。",
+        ];
+      }
+
+      const previewLine = String(nearbyItem.line || "").trim();
+      if (previewLine) {
+        if (generated.length >= 4) {
+          generated[generated.length - 1] = previewLine;
+        } else {
+          generated.push(previewLine);
+        }
+      }
+
+      const chat = {
+        ...baseChat,
+        lastMessage: generated[generated.length - 1] || "",
+        lastTime: Date.now(),
+      };
+
+      const messages = generated.map((content) => ({
+        id: `msg-${Date.now()}-${Math.random().toString(16).slice(2)}`,
+        role: "assistant",
+        content,
+        timestamp: Date.now(),
+        senderId: nearbyItem.id,
+      }));
+
+      await saveChatMessages(chat.id, messages);
+      const nextChats = [chat, ...storedChats.filter((c) => c.id !== chat.id)];
+      await saveChats(nextChats);
+      messagesModule?.reloadChats();
+      hideNearbyHint();
+      chatModule.openChat(chat);
+    } catch (error) {
+      console.error("打开附近的人聊天失败", error);
+      showNearbyHint("打开聊天失败，请重试");
+    }
+  };
+
+  const renderNearbyList = () => {
+    if (!nearbyListEl) return;
+    if (!nearbyList.length) {
+      nearbyListEl.innerHTML = `<div class="xinliao-empty">暂无附近的人，点击右上角刷新</div>`;
+      return;
+    }
+    nearbyListEl.innerHTML = nearbyList
+      .map((item) => {
+        const isSelected = selectedNearbyIds.has(item.id);
+        const selectModeClass = isNearbySelectMode ? "is-select-mode" : "";
+        const selectedClass = isSelected ? "is-selected" : "";
+        return `
+          <button class="xinliao-nearby-item ${selectModeClass} ${selectedClass}" type="button" data-id="${item.id}">
+            <span class="xinliao-nearby-check"></span>
+            <div class="xinliao-avatar">${buildAvatarMarkup(item.avatar)}</div>
+            <div class="xinliao-nearby-meta">
+              <div class="xinliao-nearby-name">${escapeHtml(item.name)}</div>
+              <div class="xinliao-nearby-line">${escapeHtml(item.line)}</div>
+            </div>
+          </button>
+        `;
+      })
+      .join("");
+  };
+
+  const refreshNearbyList = async () => {
+    if (isNearbyRefreshing) return;
+    try {
+      isNearbyRefreshing = true;
+      hideNearbyHint();
+      showNearbyHint("正在刷新...");
+      const count = 5 + Math.floor(Math.random() * 6);
+      const mask = await getDefaultMask();
+      const userName = mask?.name || "你";
+      const userDesc = mask?.description ? `用户描述：${mask.description}` : "";
+      const tone = getNearbyToneSetting();
+      let toneHint = "";
+      if (tone <= 0) {
+        toneHint = "全部礼貌克制，避免暧昧或越界内容。";
+      } else if (tone <= 3) {
+        toneHint = "整体偏礼貌友好，允许轻微好感表达，但不越界。";
+      } else if (tone <= 6) {
+        toneHint = "适度暧昧，包含 2-3 个更不正经的对象。";
+      } else if (tone <= 8) {
+        toneHint = "更大胆直白，包含 3 个左右更露骨/放纵的对象。";
+      } else {
+        toneHint = "全部放纵自我，语言露骨越界、直白大胆。";
+      }
+      const promptBase = `请生成 ${count} 个“附近的人”，人设尽量多样不雷同。` +
+        `陌生人尺度为 ${tone}/10：${toneHint}` +
+        `所有搭讪话术必须以向用户搭讪的口吻，直接对用户说话。` +
+        `用户人设：用户名：${userName}。${userDesc}` +
+        `输出 JSON 数组，每项字段：` +
+        `id(唯一字符串)、name(网名，2-6字)、avatar(单个emoji)、line(一句搭讪话，8-20字)。只输出 JSON 数组。`;
+      let data;
+      try {
+        data = await requestChatJson({ prompt: promptBase });
+      } catch (firstError) {
+        const retryPrompt = `${promptBase} 请确保输出为有效 JSON 数组，不要包含解释或多余文字。`;
+        data = await requestChatJson({ prompt: retryPrompt });
+      }
+      if (!Array.isArray(data) || data.length === 0) {
+        throw new Error("返回数据为空");
+      }
+      nearbyList = data.slice(0, 10).map(normalizeNearby);
+      saveNearby(nearbyList);
+      exitNearbySelectMode();
+      renderNearbyList();
+      hideNearbyHint();
+    } catch (error) {
+      console.error("刷新附近的人失败", error);
+      showNearbyHint(error?.message || "刷新失败，请稍后再试");
+    } finally {
+      isNearbyRefreshing = false;
+    }
+  };
+
+  const deleteSelectedNearby = () => {
+    if (selectedNearbyIds.size === 0) return;
+    nearbyList = nearbyList.filter((item) => !selectedNearbyIds.has(item.id));
+    saveNearby(nearbyList);
+    exitNearbySelectMode();
+    renderNearbyList();
+  };
+
+  const toggleNearbyMenu = () => {
+    nearbyMenu?.classList.toggle("is-hidden");
+  };
+
+  const closeNearbyMenu = () => {
+    nearbyMenu?.classList.add("is-hidden");
+  };
 
   const showXinliao = () => {
     homeView.classList.add("is-hidden");
@@ -222,7 +548,14 @@ export const initXinliaoView = async () => {
     });
   };
 
-  backButton.addEventListener("click", showHome);
+  backButton.addEventListener("click", () => {
+    if (xinliaoView.classList.contains("is-discover-subpage")) {
+      activeDiscover = "menu";
+      updateDiscoverView();
+      return;
+    }
+    showHome();
+  });
 
   document.addEventListener("keydown", (event) => {
     if (event.key === "Escape" && xinliaoView.classList.contains("active")) {
@@ -230,15 +563,8 @@ export const initXinliaoView = async () => {
     }
   });
 
-  const storedContacts = loadStoredContacts();
-  // 如果存储的联系人为空，使用默认联系人
-  const useDefault = !storedContacts.length && placeholderContacts?.length;
-  const contacts = useDefault
-    ? placeholderContacts.map(normalizeContact)
-    : storedContacts;
-  if (useDefault) {
-    saveContacts(contacts);
-  }
+  const storedContacts = await loadStoredContacts();
+  const contacts = storedContacts;
 
   // 模块引用（稍后初始化）
   let messagesModule = null;
@@ -957,6 +1283,34 @@ export const initXinliaoView = async () => {
     toggleDropdownMenu();
   });
 
+  // 附近的人菜单
+  nearbyMore?.addEventListener("click", (event) => {
+    event.stopPropagation();
+    toggleNearbyMenu();
+  });
+
+  nearbyRefresh?.addEventListener("click", () => {
+    closeNearbyMenu();
+    refreshNearbyList();
+  });
+
+  nearbyBlock?.addEventListener("click", () => {
+    closeNearbyMenu();
+    if (!nearbyList.length) {
+      showNearbyHint("暂无可拉黑的对象");
+      return;
+    }
+    enterNearbySelectMode();
+  });
+
+  // 点击空白处关闭附近的人菜单
+  xinliaoView?.addEventListener("click", (event) => {
+    const isMenuClick = event.target.closest("#xinliaoNearbyDropdown");
+    if (!isMenuClick) {
+      closeNearbyMenu();
+    }
+  });
+
   // 下拉菜单 - 创建角色
   dropdownCreate?.addEventListener("click", () => {
     closeDropdownMenu();
@@ -1039,12 +1393,67 @@ export const initXinliaoView = async () => {
     updateContactsView();
   };
 
+  const isCharacterImportedWorldbookEntry = (entry, groupsMap) => {
+    if (!entry) return false;
+    if (entry.sourceType === "character_import") return true;
+    if (entry.meta?.sourceType === "character_import") return true;
+    const group = entry.groupId ? groupsMap.get(entry.groupId) : null;
+    if (group?.sourceType === "character_import") return true;
+    if (group?.meta?.sourceType === "character_import") return true;
+    return false;
+  };
+
+  const cleanupWorldbookOnContactsDelete = (contactIdsToDelete = []) => {
+    const idsSet = new Set(contactIdsToDelete);
+    if (!idsSet.size) return;
+
+    const deletingContacts = contacts.filter((c) => idsSet.has(c.id));
+    if (!deletingContacts.length) return;
+
+    const data = loadWorldbookData();
+    const entries = Array.isArray(data.entries) ? data.entries : [];
+    const groups = Array.isArray(data.groups) ? data.groups : [];
+    const groupsMap = new Map(groups.map((g) => [g.id, g]));
+
+    const importedCandidateIds = new Set();
+    deletingContacts.forEach((contact) => {
+      const ids = Array.isArray(contact.worldbookIds) ? contact.worldbookIds : [];
+      ids.forEach((id) => {
+        const entry = entries.find((e) => e.id === id);
+        if (isCharacterImportedWorldbookEntry(entry, groupsMap)) {
+          importedCandidateIds.add(id);
+        }
+      });
+    });
+
+    if (!importedCandidateIds.size) return;
+
+    const remainingContacts = contacts.filter((c) => !idsSet.has(c.id));
+    const referencedByRemaining = new Set();
+    remainingContacts.forEach((contact) => {
+      const ids = Array.isArray(contact.worldbookIds) ? contact.worldbookIds : [];
+      ids.forEach((id) => referencedByRemaining.add(id));
+    });
+
+    const removableIds = new Set(
+      Array.from(importedCandidateIds).filter((id) => !referencedByRemaining.has(id))
+    );
+    if (!removableIds.size) return;
+
+    data.entries = entries.filter((e) => !removableIds.has(e.id));
+    const aliveGroupIds = new Set(data.entries.map((e) => e.groupId).filter(Boolean));
+    data.groups = groups.filter((g) => aliveGroupIds.has(g.id));
+    saveWorldbookData(data);
+  };
+
   // 删除选中的联系人
   const deleteSelectedContacts = () => {
     if (selectedContactIds.size === 0) return;
 
-    // 从 contacts 数组中移除选中的联系人
     const idsToDelete = Array.from(selectedContactIds);
+    cleanupWorldbookOnContactsDelete(idsToDelete);
+
+    // 从 contacts 数组中移除选中的联系人
     for (const id of idsToDelete) {
       const index = contacts.findIndex((c) => c.id === id);
       if (index !== -1) {
@@ -1104,6 +1513,8 @@ export const initXinliaoView = async () => {
     if (!contact) return;
     
     if (!confirm(`确定要删除联系人"${contact.name}"吗？`)) return;
+
+    cleanupWorldbookOnContactsDelete([contactId]);
 
     // 从所有分组中移除该联系人
     contactGroups.forEach((group) => {
@@ -1414,6 +1825,22 @@ export const initXinliaoView = async () => {
     toggleContactPin(item.dataset.id);
   });
 
+  // 附近的人列表点击
+  nearbyListEl?.addEventListener("click", (event) => {
+    const item = event.target.closest(".xinliao-nearby-item");
+    if (!item) return;
+    const nearbyId = item.dataset.id;
+    if (isNearbySelectMode) {
+      toggleNearbySelect(nearbyId);
+      return;
+    }
+    const nearbyItem = nearbyList.find((n) => n.id === nearbyId);
+    openNearbyChat(nearbyItem);
+  });
+
+  nearbyDelete?.addEventListener("click", deleteSelectedNearby);
+  nearbyCancel?.addEventListener("click", exitNearbySelectMode);
+
   detailSave?.addEventListener("click", handleDetailSave);
   detailClose?.addEventListener("click", closeDetail);
   contactsSearch?.addEventListener("input", (event) => {
@@ -1431,6 +1858,92 @@ export const initXinliaoView = async () => {
     avatarInput.select();
   });
 
+  const handleNearbyBlockInChat = async (chat) => {
+    if (!chat) return false;
+    const nearbyId = chat?.nearbyContact?.id || chat?.members?.[0];
+    if (!nearbyId) return false;
+
+    nearbyList = nearbyList.filter((item) => item.id !== nearbyId);
+    saveNearby(nearbyList);
+    renderNearbyList();
+
+    const chats = await loadStoredChats();
+    const nextChats = chats.filter((item) => item.id !== chat.id);
+    await saveChats(nextChats);
+    await deleteChatMessages(chat.id);
+    messagesModule?.reloadChats();
+    return true;
+  };
+
+  const handleNearbyAddFriendInChat = async (chat) => {
+    if (!chat) return null;
+    const nearbyId = chat?.nearbyContact?.id || chat?.members?.[0];
+    if (!nearbyId) return null;
+
+    const nearbyItem = nearbyList.find((item) => item.id === nearbyId);
+    let persona = "";
+    try {
+      const prompt = `请为一个新好友生成角色详情。` +
+        `输出 JSON 数组，长度为 1，字段：name、persona。` +
+        `name 使用“${chat.name}”。` +
+        `persona 60-120 字，包含性格、说话风格、兴趣。只输出 JSON。`;
+      const result = await requestChatJson({ prompt });
+      const profile = Array.isArray(result) ? result[0] : null;
+      persona = String(profile?.persona || "").trim();
+    } catch (error) {
+      console.warn("生成好友详情失败，使用回退人设", error);
+    }
+
+    if (!persona) {
+      const fallbackLine = nearbyItem?.line || "你好，先认识一下。";
+      persona = `来自附近的人，性格外向主动，善于破冰聊天。常用口吻偏直接，喜欢从日常话题切入。开场常说：${fallbackLine}`;
+    }
+
+    const contact = normalizeContact({
+      id: nearbyId,
+      name: chat.name,
+      avatar: chat.avatar,
+      persona,
+    });
+
+    const existingIndex = contacts.findIndex((item) => item.id === contact.id);
+    if (existingIndex === -1) {
+      contacts.push(contact);
+    } else {
+      contacts[existingIndex] = {
+        ...contacts[existingIndex],
+        ...contact,
+      };
+    }
+    saveContacts(contacts);
+    updateContactsView();
+    renderGroupsList();
+
+    nearbyList = nearbyList.filter((item) => item.id !== nearbyId);
+    saveNearby(nearbyList);
+    renderNearbyList();
+
+    const chats = await loadStoredChats();
+    const updatedChat = {
+      ...chat,
+      source: "",
+      nearbyContact: null,
+      type: "single",
+      name: contact.name,
+      avatar: contact.avatar,
+      members: [contact.id],
+      lastTime: Date.now(),
+    };
+    const chatIndex = chats.findIndex((item) => item.id === chat.id);
+    const nextChats =
+      chatIndex === -1
+        ? [updatedChat, ...chats]
+        : chats.map((item) => (item.id === chat.id ? updatedChat : item));
+    await saveChats(nextChats);
+    messagesModule?.reloadChats();
+    return updatedChat;
+  };
+
   // 初始化动态模块（先初始化，以便传递给聊天模块）
   momentsModule = initMomentsModule();
 
@@ -1445,6 +1958,8 @@ export const initXinliaoView = async () => {
       // 聊天更新时刷新会话列表
       messagesModule?.reloadChats();
     },
+    onNearbyBlock: handleNearbyBlockInChat,
+    onNearbyAddFriend: handleNearbyAddFriendInChat,
     // 传递动态模块接口
     momentsModule,
   });
@@ -1675,6 +2190,7 @@ export const initXinliaoView = async () => {
   // 初始渲染
   updateContactsView();
   renderGroupsList();
+  renderNearbyList();
 
   bindXinliaoApp();
   setActiveTab(tabs[0]?.id || "messages");

@@ -582,15 +582,15 @@ const updateAppIcon = (appName, iconUrl) => {
 const STORAGE_KEY_WALLPAPER = "beautifyWallpaper";
 
 // 当前选择的壁纸（未保存）
-let currentSelectedWallpaper = { type: 'color', value: '' };
+let currentSelectedWallpaper = { type: 'color', value: '#ffffff' };
 
 // 加载壁纸设置
 const loadWallpaper = () => {
   try {
     const raw = localStorage.getItem(STORAGE_KEY_WALLPAPER);
-    return raw ? JSON.parse(raw) : { type: 'color', value: 'linear-gradient(135deg, #667eea, #764ba2)' };
+    return raw ? JSON.parse(raw) : { type: 'color', value: '#ffffff' };
   } catch {
-    return { type: 'color', value: 'linear-gradient(135deg, #667eea, #764ba2)' };
+    return { type: 'color', value: '#ffffff' };
   }
 };
 

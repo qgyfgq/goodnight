@@ -50,6 +50,42 @@
   width: 2.5em;
 }
 
+.xinliao-chat-actions {
+  position: relative;
+  width: 2.5em;
+  height: 2.5em;
+}
+
+.xinliao-chat-action-btn {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  background: rgba(255, 255, 255, 0.88);
+  color: var(--text-secondary);
+  font-size: 1.1em;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+}
+
+.xinliao-chat-action-btn:active {
+  transform: scale(0.96);
+}
+
+.xinliao-chat-actions-menu {
+  position: absolute;
+  top: calc(100% + 0.45em);
+  right: 0;
+  min-width: 7.8em;
+  background: rgba(255, 255, 255, 0.98);
+  border-radius: 0.8em;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  box-shadow: 0 0.5em 1.3em rgba(15, 23, 42, 0.18);
+  overflow: hidden;
+  z-index: 20;
+}
+
 /* 聊天记录区 */
 .xinliao-chat-messages {
   flex: 1;
@@ -101,6 +137,17 @@
   object-fit: cover;
 }
 
+.xinliao-msg-bubble-wrap {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.35em;
+  min-width: 0;
+}
+
+.xinliao-msg.is-user .xinliao-msg-bubble-wrap {
+  flex-direction: row-reverse;
+}
+
 .xinliao-msg-bubble {
   padding: 0.6em 0.9em;
   border-radius: 1em;
@@ -110,10 +157,46 @@
   white-space: pre-wrap;
 }
 
+.xinliao-msg-reply-ref {
+  margin-bottom: 0.35em;
+  padding: 0.28em 0.5em;
+  border-radius: 0.45em;
+  border-left: 0.2em solid rgba(100, 116, 139, 0.45);
+  background: rgba(226, 232, 240, 0.58);
+  color: rgba(51, 65, 85, 0.95);
+  font-size: 0.78em;
+  line-height: 1.35;
+}
+
+.xinliao-msg-time {
+  font-size: 0.68em;
+  color: rgba(100, 116, 139, 0.9);
+  line-height: 1.2;
+  white-space: nowrap;
+  flex-shrink: 0;
+  user-select: none;
+}
+
+.xinliao-time-divider {
+  align-self: center;
+  font-size: 0.72em;
+  color: rgba(100, 116, 139, 0.9);
+  background: rgba(148, 163, 184, 0.16);
+  border-radius: 999px;
+  padding: 0.2em 0.72em;
+  line-height: 1.4;
+}
+
 .xinliao-msg.is-user .xinliao-msg-bubble {
   background: linear-gradient(135deg, #7da6ff, #5b7bff);
   color: #fff;
   border-bottom-right-radius: 0.3em;
+}
+
+.xinliao-msg.is-user .xinliao-msg-reply-ref {
+  background: rgba(255, 255, 255, 0.24);
+  border-left-color: rgba(255, 255, 255, 0.55);
+  color: rgba(255, 255, 255, 0.95);
 }
 
 .xinliao-msg.is-role .xinliao-msg-bubble {
@@ -132,6 +215,44 @@
   padding: 0.6em 0.8em;
   background: rgba(255, 255, 255, 0.95);
   border-top: 1px solid rgba(148, 163, 184, 0.15);
+}
+
+.xinliao-reply-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5em;
+  padding: 0.42em 0.8em;
+  background: rgba(241, 245, 249, 0.95);
+  border-top: 1px solid rgba(148, 163, 184, 0.18);
+  border-bottom: 1px solid rgba(148, 163, 184, 0.14);
+}
+
+.xinliao-reply-bar.is-hidden {
+  display: none;
+}
+
+.xinliao-reply-content {
+  min-width: 0;
+  flex: 1;
+  font-size: 0.78em;
+  color: #334155;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.xinliao-reply-cancel {
+  width: 1.45em;
+  height: 1.45em;
+  border-radius: 50%;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  background: rgba(255, 255, 255, 0.9);
+  color: #64748b;
+  font-size: 0.95em;
+  line-height: 1;
+  cursor: pointer;
+  flex-shrink: 0;
 }
 
 .xinliao-chat-add-btn {
@@ -313,6 +434,22 @@
   border-radius: 0.5em;
   cursor: pointer;
   font-weight: 500;
+}
+
+.xinliao-chat-quote-btn {
+  padding: 0.35em 0.8em;
+  font-size: 0.8em;
+  color: #fff;
+  background: linear-gradient(135deg, #48bb78, #2f9e63);
+  border: none;
+  border-radius: 0.5em;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.xinliao-chat-quote-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
 }
 
 /* 消息选择框 */

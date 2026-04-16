@@ -235,6 +235,9 @@ export const initMessagesModule = async (options = {}) => {
   // 会话列表（异步加载）
   let chats = await loadStoredChats();
 
+  // 附近的人会话先不进入消息页，后续由“加好友”再放开
+  const getDisplayChats = () => chats.filter((chat) => chat.source !== "nearby");
+
   // 选中的联系人 ID（用于新建会话）
   let selectedContactIds = new Set();
 
@@ -286,7 +289,7 @@ export const initMessagesModule = async (options = {}) => {
    * 更新会话列表显示
    */
   const updateChatList = () => {
-    renderChatList(messagesList, chats, getContacts(), isSelectMode, selectedChatIds);
+    renderChatList(messagesList, getDisplayChats(), getContacts(), isSelectMode, selectedChatIds);
     updateDeleteBar();
   };
 
