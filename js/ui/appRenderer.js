@@ -30,7 +30,7 @@ export const renderApps = (container, apps) => {
       return `
       <div class="app" data-app-name="${app.name}">
         <div class="app-icon">
-          <img src="${iconSrc}" alt="${app.name}" loading="lazy" />
+          <img src="${iconSrc}" alt="${app.name}" loading="lazy" onerror="this.onerror=null;this.src='assets/favicon.png';" />
         </div>
         <div class="app-name">${app.name}</div>
       </div>
